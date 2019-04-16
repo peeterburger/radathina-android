@@ -108,19 +108,27 @@ public class RadarFragment extends Fragment implements OnMapReadyCallback,
 
     @Override
     public void onLocationChanged(Location location) {
+        while(location == null) {
+            try {
+                location = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            } catch (SecurityException se) {
+                Log.d("DBG", "permission denied: ");
+            }
+        }
+
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-        Log.d("DBG", "location change detected: lon=" + location.getLongitude() + ";lon="
-                + location.getLatitude());
+        Log.d("DBG", "location change detected: lat=" + latLng.latitude + ";lon="
+                + latLng.longitude);
         CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM);
         mMap.animateCamera(cameraUpdate);
         Log.d("DBG", "camera moved...");
 
-        CircleOptions circleOptions = new CircleOptions()
+        /* CircleOptions circleOptions = new CircleOptions()
                 .center(latLng)
                 .radius(DEFAULT_RADAR_RADIUS_METERS)
                 .strokeWidth(4);
         // mMap.addCircle(circleOptions);
-        Log.d("DBG", "radar updated...");
+        Log.d("DBG", "radar updated..."); */
     }
 
     private void enableMyLocation() {

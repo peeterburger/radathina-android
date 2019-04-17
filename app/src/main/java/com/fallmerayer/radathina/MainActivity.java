@@ -1,6 +1,8 @@
 package com.fallmerayer.radathina;
 
+import android.media.audiofx.Equalizer;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.FragmentTransaction;
@@ -19,6 +21,9 @@ import com.fallmerayer.radathina.menufragments.NotificationFragment;
 import com.fallmerayer.radathina.menufragments.RadarFragment;
 import com.fallmerayer.radathina.menufragments.SettingsFragment;
 import com.fallmerayer.radathina.menufragments.WeatherFragment;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -74,9 +79,25 @@ public class MainActivity extends AppCompatActivity {
         BottomNavigationView navigation = findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
 
+        testOpenroutesservice();
+        testInternalRest();
+
+        Log.d("DBG", "android-id: " + Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID));
+    }
+
+    public void testOpenroutesservice () {
         // Instantiate the RequestQueue.
         RequestQueue queue = Volley.newRequestQueue(this);
-        String url ="http://www.google.com";
+
+        String profile = "driving-car";
+        String apiKey = "5b3ce3597851110001cf624892e3aee660dd4e36a94e389509ba388c";
+        String start = "8.681495,49.41461";
+        String end = "8.687872,49.420318";
+
+        String url = "https://api.openrouteservice.org/v2/directions/" + profile +
+                "?api_key=" +   apiKey +
+                "&start="   +   start +
+                "&end="     +   end;
 
         // Request a string response from the provided URL.
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
@@ -86,15 +107,36 @@ public class MainActivity extends AppCompatActivity {
                         Log.d("DBG", response);
                     }
                 }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.d("DBG", "error connecting to server");
-                    }
-                });
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.d("DBG", "error connecting to server");
+            }
+        });
 
         // Add the request to the RequestQueue.
         queue.add(stringRequest);
+    }
 
+    public void testInternalRest () {
+        // Instantiate the RequestQueue.
+        RequestQueue queue = Volley.newRequestQueue(this);
+        String url ="http://10.171.154.205:3000";
 
+        // Request a string response from the provided URL.
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        Log.d("DBG", response);
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.d("DBG", "error connecting to server" + error.getMessage());
+            }
+        });
+
+        // Add the request to the RequestQueue.
+        queue.add(stringRequest);
     }
 }

@@ -17,6 +17,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.fallmerayer.radathina.R;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -27,6 +33,10 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class RadarFragment extends Fragment implements OnMapReadyCallback,
         LocationListener {
@@ -93,6 +103,8 @@ public class RadarFragment extends Fragment implements OnMapReadyCallback,
                         DEFAULT_LOCATION_REFRESH_DISTANCE_METERS,
                         this);
 
+                loadMarkers();
+
                 onLocationChanged(mLocationManager.getLastKnownLocation(
                         LocationManager.GPS_PROVIDER));
 
@@ -142,6 +154,50 @@ public class RadarFragment extends Fragment implements OnMapReadyCallback,
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
                     PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
         }
+    }
+
+    public void loadMarkers () {
+        // Instantiate the RequestQueue.
+        RequestQueue queue = Volley.newRequestQueue(this.getActivity());
+        String url ="http://10.171.154.205:3000/api/v1/attractions/all";
+
+        // Request a string response from the provided URL.
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        try{
+                            JSONArray jsonResponse = new JSONArray(response);
+                            Log.d("DBG", "loadMarkers(): " + response);
+                            Log.d("DBG", "loadJson(): " + jsonResponse);
+
+                            for (int i = 0; i < jsonResponse.length(); i++) {
+                                JSONObject attraction = jsonResponse.getJSONObject(i);
+                                JSONObject coordinates = attraction.getJSONObject("koordinaten");
+
+                                double lon = coordinates.getDouble("lon");
+                                double lat = coordinates.getDouble("lat");
+
+                                mMap.addMarker(new MarkerOptions()
+                                        .position(new LatLng(lon, lat))
+                                        .snippet("TEST")
+                                        .visible(true));
+
+                                Log.d("DBG", "" + lon + "," + lat);
+                            }
+                        } catch (Exception e) {
+                            Log.d("DBG", "error parsing");
+                        }
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.d("DBG", "error connecting to server " + error.networkResponse);
+            }
+        });
+
+        // Add the request to the RequestQueue.
+        queue.add(stringRequest);
     }
 
     @Override

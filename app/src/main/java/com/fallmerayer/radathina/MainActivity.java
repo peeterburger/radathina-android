@@ -1,6 +1,5 @@
 package com.fallmerayer.radathina;
 
-import android.media.audiofx.Equalizer;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
@@ -22,8 +21,6 @@ import com.fallmerayer.radathina.menufragments.RadarFragment;
 import com.fallmerayer.radathina.menufragments.SettingsFragment;
 import com.fallmerayer.radathina.menufragments.WeatherFragment;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity {
 

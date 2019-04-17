@@ -30,16 +30,22 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+
 public class RadarFragment extends Fragment implements OnMapReadyCallback,
-        LocationListener {
+        LocationListener, GoogleMap.OnMarkerClickListener {
+
+    private Marker myMarker;
 
     private GoogleMap   mMap;
     private MapView     mMapView;
@@ -88,8 +94,15 @@ public class RadarFragment extends Fragment implements OnMapReadyCallback,
         map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         enableMyLocation();
 
+        myMarker = map.addMarker(new MarkerOptions()
+                .position(new LatLng(46.7202238,11.6465904))
+                .title("My Spot")
+                .snippet("This is my spot!")
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+
         if(locationPermissionGranted) {
             try {
+                map.setOnMarkerClickListener(this);
                 map.setMyLocationEnabled(true);
 
                 Log.d("DBG", "setMyLocationEnabled: true");
@@ -179,8 +192,9 @@ public class RadarFragment extends Fragment implements OnMapReadyCallback,
                                 double lat = coordinates.getDouble("lat");
 
                                 mMap.addMarker(new MarkerOptions()
+                                        .title(attraction.getString("name"))
                                         .position(new LatLng(lon, lat))
-                                        .snippet("TEST")
+                                        .snippet(attraction.getString("name"))
                                         .visible(true));
 
                                 Log.d("DBG", "" + lon + "," + lat);
@@ -223,4 +237,10 @@ public class RadarFragment extends Fragment implements OnMapReadyCallback,
 
     @Override
     public void onProviderDisabled(String provider) { }
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        Log.d("DBG", "marker clicked");
+        return false;
+    }
 }

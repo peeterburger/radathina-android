@@ -1,6 +1,7 @@
 package com.fallmerayer.radathina;
 
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.FragmentTransaction;
@@ -22,6 +23,7 @@ import com.fallmerayer.radathina.menufragments.RadarFragment;
 import com.fallmerayer.radathina.menufragments.SettingsFragment;
 import com.fallmerayer.radathina.menufragments.WeatherFragment;
 import com.google.android.gms.maps.model.LatLng;
+
 
 public class MainActivity extends AppCompatActivity {
 

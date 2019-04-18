@@ -17,6 +17,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.fallmerayer.radathina.R;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -24,12 +30,22 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
 
 public class RadarFragment extends Fragment implements OnMapReadyCallback,
-        LocationListener {
+        LocationListener, GoogleMap.OnMarkerClickListener {
+
+    private Marker myMarker;
 
     private GoogleMap   mMap;
     private MapView     mMapView;
@@ -78,8 +94,15 @@ public class RadarFragment extends Fragment implements OnMapReadyCallback,
         map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         enableMyLocation();
 
+        myMarker = map.addMarker(new MarkerOptions()
+                .position(new LatLng(46.7202238,11.6465904))
+                .title("My Spot")
+                .snippet("This is my spot!")
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+
         if(locationPermissionGranted) {
             try {
+                map.setOnMarkerClickListener(this);
                 map.setMyLocationEnabled(true);
 
                 Log.d("DBG", "setMyLocationEnabled: true");
@@ -92,6 +115,8 @@ public class RadarFragment extends Fragment implements OnMapReadyCallback,
                         DEFAULT_LOCATION_REFRESH_TIME_MILLIS,
                         DEFAULT_LOCATION_REFRESH_DISTANCE_METERS,
                         this);
+
+                loadMarkers();
 
                 onLocationChanged(mLocationManager.getLastKnownLocation(
                         LocationManager.GPS_PROVIDER));
@@ -144,6 +169,51 @@ public class RadarFragment extends Fragment implements OnMapReadyCallback,
         }
     }
 
+    public void loadMarkers () {
+        // Instantiate the RequestQueue.
+        RequestQueue queue = Volley.newRequestQueue(this.getActivity());
+        String url ="http://10.171.154.205:3000/api/v1/attractions/all";
+
+        // Request a string response from the provided URL.
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        try{
+                            JSONArray jsonResponse = new JSONArray(response);
+                            Log.d("DBG", "loadMarkers(): " + response);
+                            Log.d("DBG", "loadJson(): " + jsonResponse);
+
+                            for (int i = 0; i < jsonResponse.length(); i++) {
+                                JSONObject attraction = jsonResponse.getJSONObject(i);
+                                JSONObject coordinates = attraction.getJSONObject("koordinaten");
+
+                                double lon = coordinates.getDouble("lon");
+                                double lat = coordinates.getDouble("lat");
+
+                                mMap.addMarker(new MarkerOptions()
+                                        .title(attraction.getString("name"))
+                                        .position(new LatLng(lon, lat))
+                                        .snippet(attraction.getString("name"))
+                                        .visible(true));
+
+                                Log.d("DBG", "" + lon + "," + lat);
+                            }
+                        } catch (Exception e) {
+                            Log.d("DBG", "error parsing");
+                        }
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.d("DBG", "error connecting to server " + error.networkResponse);
+            }
+        });
+
+        // Add the request to the RequestQueue.
+        queue.add(stringRequest);
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         if (requestCode == PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION) {
@@ -167,4 +237,10 @@ public class RadarFragment extends Fragment implements OnMapReadyCallback,
 
     @Override
     public void onProviderDisabled(String provider) { }
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        Log.d("DBG", "marker clicked");
+        return false;
+    }
 }

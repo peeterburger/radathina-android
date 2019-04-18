@@ -14,11 +14,14 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.fallmerayer.radathina.api.InternalApiClient;
+import com.fallmerayer.radathina.api.VolleyCallback;
 import com.fallmerayer.radathina.menufragments.HomeFragment;
 import com.fallmerayer.radathina.menufragments.NotificationFragment;
 import com.fallmerayer.radathina.menufragments.RadarFragment;
 import com.fallmerayer.radathina.menufragments.SettingsFragment;
 import com.fallmerayer.radathina.menufragments.WeatherFragment;
+import com.google.android.gms.maps.model.LatLng;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -74,27 +77,45 @@ public class MainActivity extends AppCompatActivity {
         BottomNavigationView navigation = findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
 
-        // Instantiate the RequestQueue.
-        RequestQueue queue = Volley.newRequestQueue(this);
-        String url ="http://www.google.com";
+        // testInternalApi();
+    }
 
-        // Request a string response from the provided URL.
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                new Response.Listener<String>() {
+    private void testInternalApi() {
+        InternalApiClient internalApiClient = new InternalApiClient(this)
+                .protocol("http")
+                .host("192.168.1.100")
+                .port(12345)
+                .apiPath("/api/v1");
+
+        internalApiClient.calculateBeeline(new LatLng(10, 10), new LatLng(20, 20),
+                new VolleyCallback() {
                     @Override
-                    public void onResponse(String response) {
-                        Log.d("DBG", response);
-                    }
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.d("DBG", "error connecting to server");
+                    public void onSuccess(String result) {
+                        Log.d("DBG", "calculateBeeline: " + result);
                     }
                 });
 
-        // Add the request to the RequestQueue.
-        queue.add(stringRequest);
 
+        internalApiClient.getAttractionByName("Plaka", new VolleyCallback() {
+            @Override
+            public void onSuccess(String result) {
+                Log.d("DBG", "getAttractionByName: " + result);
+            }
+        });
+
+        internalApiClient.getAttractions(0, new VolleyCallback() {
+            @Override
+            public void onSuccess(String result) {
+                Log.d("DBG", "getAttractions: " + result);
+            }
+        });
+
+        internalApiClient.getAttractionsNearby(new LatLng(30, 30), 1000, new VolleyCallback() {
+            @Override
+            public void onSuccess(String result) {
+                Log.d("DBG", "getAttractionsNearby: " + result);
+            }
+        });
 
     }
 }

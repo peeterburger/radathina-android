@@ -1,7 +1,6 @@
 package com.fallmerayer.radathina;
 
 import android.os.Bundle;
-import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.FragmentTransaction;
@@ -9,14 +8,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MenuItem;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
-import com.fallmerayer.radathina.api.InternalApiClient;
-import com.fallmerayer.radathina.api.VolleyCallback;
+import com.fallmerayer.radathina.api.core.ApiClientOptions;
+import com.fallmerayer.radathina.api.clients.InternalApiClient;
+import com.fallmerayer.radathina.api.core.VolleyCallback;
 import com.fallmerayer.radathina.menufragments.HomeFragment;
 import com.fallmerayer.radathina.menufragments.NotificationFragment;
 import com.fallmerayer.radathina.menufragments.RadarFragment;
@@ -83,11 +77,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void testInternalApi() {
-        InternalApiClient internalApiClient = new InternalApiClient(this)
+        InternalApiClient internalApiClient = new InternalApiClient(this, new ApiClientOptions()
                 .protocol("http")
                 .host("192.168.1.100")
                 .port(12345)
-                .apiPath("/api/v1");
+                .apiPath("/api/v1")
+        );
 
         internalApiClient.calculateBeeline(new LatLng(10, 10), new LatLng(20, 20),
                 new VolleyCallback() {

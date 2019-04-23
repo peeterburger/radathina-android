@@ -207,7 +207,7 @@ public class RadarFragment extends Fragment implements OnMapReadyCallback,
     public void loadTestRoute() {
         openRoutesServiceApiClient.getDirection("foot-walking",
                 "5b3ce3597851110001cf624892e3aee660dd4e36a94e389509ba388c",
-                new LatLng(46.667462, 11.595469), new LatLng(46.669583, 11.599975),
+                new LatLng(46.7169941, 11.6589174), new LatLng(47, 12),
                 new VolleyCallback() {
                     @Override
                     public void onSuccess(String result) {
@@ -223,11 +223,11 @@ public class RadarFragment extends Fragment implements OnMapReadyCallback,
 
                             for (int i = 0; i < coordinates.length(); i++) {
                                 JSONArray coordinate = coordinates.getJSONArray(i);
-                                Log.d("DBG", coordinate.getDouble(0) + ";"
-                                        + coordinate.getDouble(1));
+                                Log.d("DBG", coordinate.getDouble(1) + ";"
+                                        + coordinate.getDouble(0));
 
-                                options.add(new LatLng(coordinate.getDouble(0),
-                                        coordinate.getDouble(1)));
+                                options.add(new LatLng(coordinate.getDouble(1),
+                                        coordinate.getDouble(0)));
                             }
 
                             mMap.addPolyline(options);

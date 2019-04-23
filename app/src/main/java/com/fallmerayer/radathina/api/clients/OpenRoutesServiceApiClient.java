@@ -18,8 +18,8 @@ public class OpenRoutesServiceApiClient extends ApiClient {
 
         HashMap<String, String> queryStrings = new HashMap<>(3);
         queryStrings.put("api_key", apiKey);
-        queryStrings.put("start", "" + start.latitude + "," + start.longitude);
-        queryStrings.put("end", "" + end.latitude + "," + end.longitude);
+        queryStrings.put("start", "" + start.longitude + "," + start.latitude);
+        queryStrings.put("end", "" + end.longitude + "," + end.latitude);
 
         String requestUrl = buildRequest("/directions", profile, queryStrings);
 

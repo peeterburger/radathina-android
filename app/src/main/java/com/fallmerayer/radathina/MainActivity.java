@@ -1,6 +1,7 @@
 package com.fallmerayer.radathina;
 
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.FragmentTransaction;
@@ -8,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MenuItem;
 
+import com.fallmerayer.radathina.api.clients.LocationSender;
 import com.fallmerayer.radathina.api.core.ApiClientOptions;
 import com.fallmerayer.radathina.api.clients.InternalApiClient;
 import com.fallmerayer.radathina.api.core.VolleyCallback;
@@ -74,6 +76,23 @@ public class MainActivity extends AppCompatActivity {
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
 
         // testInternalApi();
+        // testLocationSender();
+    }
+
+    private void testLocationSender () {
+        LocationSender locationSender = new LocationSender(this, new ApiClientOptions()
+                .protocol("http")
+                .host("185.5.199.33")
+                .port(5051));
+
+        String androidId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+
+        locationSender.sendLocation(new LatLng(0, 0), androidId, new VolleyCallback() {
+            @Override
+            public void onSuccess(String result) {
+                Log.d("DBG", "locationSender onSuccess: " + result);
+            }
+        });
     }
 
     private void testInternalApi() {

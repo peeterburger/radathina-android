@@ -24,6 +24,11 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.fallmerayer.radathina.R;
+import com.fallmerayer.radathina.api.clients.InternalApiClient;
+import com.fallmerayer.radathina.api.clients.OpenRoutesServiceApiClient;
+import com.fallmerayer.radathina.api.core.ApiClient;
+import com.fallmerayer.radathina.api.core.ApiClientOptions;
+import com.fallmerayer.radathina.api.core.VolleyCallback;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -31,16 +36,14 @@ import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.Circle;
-import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.ArrayList;
 
 public class RadarFragment extends Fragment implements OnMapReadyCallback,
         LocationListener, GoogleMap.OnMarkerClickListener {
@@ -61,21 +64,49 @@ public class RadarFragment extends Fragment implements OnMapReadyCallback,
     static float    DEFAULT_ZOOM = 16;
     static float    DEFAULT_RADAR_RADIUS_METERS = 100;
 
+    private boolean mapLoaded = false;
+
+    private InternalApiClient internalApiClient;
+    private OpenRoutesServiceApiClient openRoutesServiceApiClient;
+
+
     public RadarFragment() {
         // Required empty public constructor
     }
 
     @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        Log.d("ONCALLBACK", "onCreate");
+        super.onCreate(savedInstanceState);
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        Log.d("ONCALLBACK", "onCreateView");
         mView = inflater.inflate(R.layout.fragment_radar, container, false);
-
         return mView;
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        Log.d("ONCALLBACK", "onViewCreated");
+
+
+        internalApiClient = new InternalApiClient(this.getActivity(), new ApiClientOptions()
+                .protocol("http")
+                .host("192.168.1.100")
+                .port(12345)
+                .apiPath("/api/v1")
+        );
+
+        openRoutesServiceApiClient = new OpenRoutesServiceApiClient(this.getActivity(), new ApiClientOptions()
+                .protocol("https")
+                .host("api.openrouteservice.org")
+                .port(443)
+                .apiPath("/v2"));
+
 
         mMapView = mView.findViewById(R.id.map);
         if(mMapView != null){
@@ -87,6 +118,7 @@ public class RadarFragment extends Fragment implements OnMapReadyCallback,
 
     @Override
     public void onMapReady(GoogleMap map) {
+        Log.d("ONCALLBACK", "onMapReady");
 
         MapsInitializer.initialize(getContext());
         mMap = map;
@@ -117,6 +149,7 @@ public class RadarFragment extends Fragment implements OnMapReadyCallback,
                         this);
 
                 loadMarkers();
+                loadTestRoute();
 
                 onLocationChanged(mLocationManager.getLastKnownLocation(
                         LocationManager.GPS_PROVIDER));
@@ -133,6 +166,8 @@ public class RadarFragment extends Fragment implements OnMapReadyCallback,
 
     @Override
     public void onLocationChanged(Location location) {
+        Log.d("ONCALLBACK", "onLocationChanged");
+
         while(location == null) {
             try {
                 location = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
@@ -169,53 +204,79 @@ public class RadarFragment extends Fragment implements OnMapReadyCallback,
         }
     }
 
-    public void loadMarkers () {
-        // Instantiate the RequestQueue.
-        RequestQueue queue = Volley.newRequestQueue(this.getActivity());
-        String url ="http://10.171.154.205:3000/api/v1/attractions/all";
-
-        // Request a string response from the provided URL.
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                new Response.Listener<String>() {
+    public void loadTestRoute() {
+        openRoutesServiceApiClient.getDirection("foot-walking",
+                "5b3ce3597851110001cf624892e3aee660dd4e36a94e389509ba388c",
+                new LatLng(46.667462, 11.595469), new LatLng(46.669583, 11.599975),
+                new VolleyCallback() {
                     @Override
-                    public void onResponse(String response) {
-                        try{
-                            JSONArray jsonResponse = new JSONArray(response);
-                            Log.d("DBG", "loadMarkers(): " + response);
-                            Log.d("DBG", "loadJson(): " + jsonResponse);
+                    public void onSuccess(String result) {
 
-                            for (int i = 0; i < jsonResponse.length(); i++) {
-                                JSONObject attraction = jsonResponse.getJSONObject(i);
-                                JSONObject coordinates = attraction.getJSONObject("koordinaten");
+                        PolylineOptions options = new PolylineOptions();
 
-                                double lon = coordinates.getDouble("lon");
-                                double lat = coordinates.getDouble("lat");
+                        Log.d("DBG", "loadTestRoute: " + result);
+                        try {
+                            JSONObject route = new JSONObject(result);
+                            JSONArray coordinates = route.getJSONArray("features").
+                                    getJSONObject(0).getJSONObject("geometry").
+                                    getJSONArray("coordinates");
 
-                                mMap.addMarker(new MarkerOptions()
-                                        .title(attraction.getString("name"))
-                                        .position(new LatLng(lon, lat))
-                                        .snippet(attraction.getString("name"))
-                                        .visible(true));
+                            for (int i = 0; i < coordinates.length(); i++) {
+                                JSONArray coordinate = coordinates.getJSONArray(i);
+                                Log.d("DBG", coordinate.getDouble(0) + ";"
+                                        + coordinate.getDouble(1));
 
-                                Log.d("DBG", "" + lon + "," + lat);
+                                options.add(new LatLng(coordinate.getDouble(0),
+                                        coordinate.getDouble(1)));
                             }
-                        } catch (Exception e) {
-                            Log.d("DBG", "error parsing");
+
+                            mMap.addPolyline(options);
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            Log.d("DBG", "JSONException: " + e.getStackTrace());
                         }
                     }
-                }, new Response.ErrorListener() {
+                });
+    }
+
+    public void loadMarkers () {
+        Log.d("DBG", "loadMarkers: ");
+
+        internalApiClient.getAttractions(0, new VolleyCallback() {
             @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.d("DBG", "error connecting to server " + error.networkResponse);
+            public void onSuccess(String result) {
+                try {
+                    Log.d("DBG", "onSuccess: SERVER RESULT: " + result);
+                    JSONArray attractions = new JSONArray(result);
+
+                    Log.d("DBG", "" + attractions.length());
+
+                    for (int i = 0; i < attractions.length(); i++) {
+                        JSONObject attraction = attractions.getJSONObject(i);
+
+                        double lat = attraction.getJSONObject("coordinates").getDouble("lat");
+                        double lon = attraction.getJSONObject("coordinates").getDouble("lon");
+
+                        String name = attraction.getString("name");
+
+                        Log.d("DBG", "lat: " + lat + "; lon: " + lon);
+
+                        mMap.addMarker(new MarkerOptions()
+                                .position(new LatLng(lat, lon))
+                                .title(name)
+                                .snippet("snippet"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
         });
-
-        // Add the request to the RequestQueue.
-        queue.add(stringRequest);
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        Log.d("ONCALLBACK", "onRequestPermissionsResult");
         if (requestCode == PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION) {
             if (permissions.length == 1 &&
                     permissions[0] == Manifest.permission.ACCESS_FINE_LOCATION &&
@@ -240,7 +301,7 @@ public class RadarFragment extends Fragment implements OnMapReadyCallback,
 
     @Override
     public boolean onMarkerClick(Marker marker) {
-        Log.d("DBG", "marker clicked");
+        Log.d("ONCALLBACK", "onMarkerClick");
         return false;
     }
 }

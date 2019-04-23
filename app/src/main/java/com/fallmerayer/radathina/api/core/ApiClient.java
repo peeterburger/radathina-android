@@ -19,13 +19,13 @@ public class ApiClient {
 
     private Context context;
 
-    protected void addVolley(String requestUrl, final VolleyCallback volleyCallback) {
+    protected void addVolley(int requestMethod, String requestUrl, final VolleyCallback volleyCallback) {
 
         // Instantiate the RequestQueue.
         RequestQueue queue = Volley.newRequestQueue(context);
 
         // Request a string response from the provided URL.
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, requestUrl,
+        StringRequest stringRequest = new StringRequest(requestMethod, requestUrl,
                 new Response.Listener<String>() {
 
                     @Override
@@ -37,7 +37,7 @@ public class ApiClient {
 
             @Override
             public void onErrorResponse(VolleyError error) {
-                Log.d("DBG", "onResponse: " + error.getMessage());
+                Log.d("DBG", "onError: " + error.getMessage());
             }
 
         });

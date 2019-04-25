@@ -29,6 +29,18 @@
                 android:layout_width="match_parent"
                 android:layout_height="58dp"
                 android:text="TextView" />
+
+            <Button
+                android:id="@+id/button_route"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Route" />
+
+            <ImageView
+                android:id="@+id/imageView"
+                android:layout_width="match_parent"
+                android:layout_height="453dp"
+                tools:src="@tools:sample/avatars" />
         </LinearLayout>
     </ScrollView>
 

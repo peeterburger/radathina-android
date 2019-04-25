@@ -1,44 +1,38 @@
 package com.fallmerayer.radathina.menufragments;
 
-import android.Manifest;
 import android.animation.ObjectAnimator;
 import android.content.Context;
-import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ScrollView;
-import android.widget.TextView;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 import com.fallmerayer.radathina.R;
 import com.fallmerayer.radathina.api.clients.InternalApiClient;
 import com.fallmerayer.radathina.api.clients.OpenRoutesServiceApiClient;
-import com.fallmerayer.radathina.api.core.ApiClient;
 import com.fallmerayer.radathina.api.core.ApiClientOptions;
 import com.fallmerayer.radathina.api.core.VolleyCallback;
+
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -48,54 +42,36 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.Console;
-
 public class RadarFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnMapClickListener,
         LocationListener, GoogleMap.OnMarkerClickListener {
-
-    private Marker myMarker;
 
     private GoogleMap   mMap;
     private MapView     mMapView;
     private View        mView;
 
-    private int     PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
-    private boolean locationPermissionGranted = false;
+    private LocationManager locationManager;
+    private ConnectivityManager connectivityManager;
 
-    private LocationManager mLocationManager;
+    public static long     DEFAULT_LOCATION_REFRESH_TIME_MILLIS = 1000;
+    public static float    DEFAULT_LOCATION_REFRESH_DISTANCE_METERS = 10;
+    public static float    DEFAULT_ZOOM = 16;
+    public static float    DEFAULT_RADAR_RADIUS_METERS = 300;
 
-    static long     DEFAULT_LOCATION_REFRESH_TIME_MILLIS = 1000;
-    static float    DEFAULT_LOCATION_REFRESH_DISTANCE_METERS = 10;
-    static float    DEFAULT_ZOOM = 16;
-    static float    DEFAULT_RADAR_RADIUS_METERS = 100;
-
-    private boolean mapLoaded = false;
+    private LatLng attractionLatLng;
 
     private InternalApiClient internalApiClient;
     private OpenRoutesServiceApiClient openRoutesServiceApiClient;
 
+    private Circle radar;
 
     public RadarFragment() {
         // Required empty public constructor
     }
 
-    private void enableMyLocation() {
-        if (ContextCompat.checkSelfPermission(
-                this.getActivity(),
-                Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            Log.d("DBG", "Request success!");
-            locationPermissionGranted = true;
-        } else {
-            ActivityCompat.requestPermissions(this.getActivity(),
-                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
-        }
-    }
-
-    public void loadTestRoute() {
+    public void loadRoute(LatLng start, LatLng end) {
         openRoutesServiceApiClient.getDirection("foot-walking",
                 "5b3ce3597851110001cf624892e3aee660dd4e36a94e389509ba388c",
-                new LatLng(46.7169941, 11.6589174), new LatLng(47, 12),
+                start, end,
                 new VolleyCallback() {
                     @Override
                     public void onSuccess(String result) {
@@ -159,6 +135,11 @@ public class RadarFragment extends Fragment implements OnMapReadyCallback, Googl
         });
     }
 
+    private boolean isNetworkAvailable() {
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         Log.d("ONCALLBACK", "onCreate");
@@ -170,6 +151,20 @@ public class RadarFragment extends Fragment implements OnMapReadyCallback, Googl
                              Bundle savedInstanceState) {
         Log.d("ONCALLBACK", "onCreateView");
         mView = inflater.inflate(R.layout.fragment_radar, container, false);
+        Button btn = mView.findViewById(R.id.button_route);
+        btn.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View arg0) {
+                try {
+                    loadRoute(new LatLng(locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER).getLatitude(),
+                                    locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER).getLongitude()),
+                            attractionLatLng);
+                } catch (SecurityException se) {
+
+                }
+            }
+        });
         return mView;
     }
 
@@ -202,22 +197,6 @@ public class RadarFragment extends Fragment implements OnMapReadyCallback, Googl
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        Log.d("ONCALLBACK", "onRequestPermissionsResult");
-        if (requestCode == PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION) {
-            if (permissions.length == 1 &&
-                    permissions[0] == Manifest.permission.ACCESS_FINE_LOCATION &&
-                    grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Log.d("DBG", "Request success");
-                locationPermissionGranted = true;
-            } else {
-                Log.d("DBG", "Permission denied");
-                locationPermissionGranted = false;
-            }
-        }
-    }
-
-    @Override
     public void onMapReady(GoogleMap map) {
         Log.d("ONCALLBACK", "onMapReady");
 
@@ -225,44 +204,50 @@ public class RadarFragment extends Fragment implements OnMapReadyCallback, Googl
         mMap = map;
 
         map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-        enableMyLocation();
 
-        myMarker = map.addMarker(new MarkerOptions()
-                .position(new LatLng(46.7202238,11.6465904))
-                .title("My Spot")
-                .snippet("This is my spot!")
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+        locationManager = (LocationManager) this.getActivity().getSystemService(
+                Context.LOCATION_SERVICE);
 
-        if(locationPermissionGranted) {
+        connectivityManager = (ConnectivityManager) this.getActivity().getSystemService(
+                Context.CONNECTIVITY_SERVICE);
+
+        if ( !locationManager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
+            Log.d("GPS", "GPS not enabled. No provider found!");
+        } if (!isNetworkAvailable()) {
+            Log.d("GPS", "No internet connection...");
+        } else {
+
             try {
+                radar = map.addCircle(new CircleOptions()
+                        .strokeColor(Color.argb(255, 0, 0, 255))
+                        .strokeWidth(3)
+                        .fillColor(Color.argb(30, 0, 0,255))
+                        .radius(DEFAULT_RADAR_RADIUS_METERS)
+                        .center(new LatLng(-33.87365, 151.20689)));
+
                 map.setOnMarkerClickListener(this);
                 map.setMyLocationEnabled(true);
 
                 Log.d("DBG", "setMyLocationEnabled: true");
 
-                mLocationManager = (LocationManager) this.getActivity().getSystemService(
-                        Context.LOCATION_SERVICE);
-
-                mLocationManager.requestLocationUpdates(
+                locationManager.requestLocationUpdates(
                         LocationManager.GPS_PROVIDER,
                         DEFAULT_LOCATION_REFRESH_TIME_MILLIS,
                         DEFAULT_LOCATION_REFRESH_DISTANCE_METERS,
                         this);
 
-                loadMarkers();
-                loadTestRoute();
 
-                onLocationChanged(mLocationManager.getLastKnownLocation(
+
+                loadMarkers();
+
+                onLocationChanged(locationManager.getLastKnownLocation(
                         LocationManager.GPS_PROVIDER));
 
                 Log.d("DBG", "requestLocationUpdates...");
             } catch (SecurityException se) {
-                Log.d("DBG", "Permission denied");
+                Log.d("PERMISSIONS", "Permission denied");
             }
-        } else {
-            Log.d("DBG", "Permission denied");
         }
-
     }
 
     @Override
@@ -271,25 +256,22 @@ public class RadarFragment extends Fragment implements OnMapReadyCallback, Googl
 
         while(location == null) {
             try {
-                location = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             } catch (SecurityException se) {
                 Log.d("DBG", "permission denied: ");
             }
         }
 
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+
+        radar.setCenter(latLng);
+
         Log.d("DBG", "location change detected: lat=" + latLng.latitude + ";lon="
                 + latLng.longitude);
         CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM);
         mMap.animateCamera(cameraUpdate);
         Log.d("DBG", "camera moved...");
 
-        /* CircleOptions circleOptions = new CircleOptions()
-                .center(latLng)
-                .radius(DEFAULT_RADAR_RADIUS_METERS)
-                .strokeWidth(4);
-        // mMap.addCircle(circleOptions);
-        Log.d("DBG", "radar updated..."); */
     }
 
     @Override
@@ -307,6 +289,8 @@ public class RadarFragment extends Fragment implements OnMapReadyCallback, Googl
         ScrollView scrollView = this.getActivity().findViewById(R.id.attraction_feed);
         scrollView.setVisibility(View.VISIBLE);
 
+        attractionLatLng = marker.getPosition();
+
         ObjectAnimator animation = ObjectAnimator.ofFloat(scrollView, "translationY", 500f);
         animation.setDuration(500);
         animation.start();
@@ -320,4 +304,5 @@ public class RadarFragment extends Fragment implements OnMapReadyCallback, Googl
         ScrollView scrollView = this.getActivity().findViewById(R.id.attraction_feed);
         scrollView.setVisibility(View.INVISIBLE);
     }
+
 }

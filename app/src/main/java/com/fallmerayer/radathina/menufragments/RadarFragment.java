@@ -1,6 +1,7 @@
 package com.fallmerayer.radathina.menufragments;
 
 import android.Manifest;
+import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -16,6 +17,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ScrollView;
+import android.widget.TextView;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -45,7 +48,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class RadarFragment extends Fragment implements OnMapReadyCallback,
+import java.io.Console;
+
+public class RadarFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnMapClickListener,
         LocationListener, GoogleMap.OnMarkerClickListener {
 
     private Marker myMarker;
@@ -72,6 +77,86 @@ public class RadarFragment extends Fragment implements OnMapReadyCallback,
 
     public RadarFragment() {
         // Required empty public constructor
+    }
+
+    private void enableMyLocation() {
+        if (ContextCompat.checkSelfPermission(
+                this.getActivity(),
+                Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            Log.d("DBG", "Request success!");
+            locationPermissionGranted = true;
+        } else {
+            ActivityCompat.requestPermissions(this.getActivity(),
+                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+        }
+    }
+
+    public void loadTestRoute() {
+        openRoutesServiceApiClient.getDirection("foot-walking",
+                "5b3ce3597851110001cf624892e3aee660dd4e36a94e389509ba388c",
+                new LatLng(46.7169941, 11.6589174), new LatLng(47, 12),
+                new VolleyCallback() {
+                    @Override
+                    public void onSuccess(String result) {
+
+                        PolylineOptions options = new PolylineOptions();
+
+                        try {
+                            JSONObject route = new JSONObject(result);
+                            JSONArray coordinates = route.getJSONArray("features").
+                                    getJSONObject(0).getJSONObject("geometry").
+                                    getJSONArray("coordinates");
+
+                            for (int i = 0; i < coordinates.length(); i++) {
+                                JSONArray coordinate = coordinates.getJSONArray(i);
+
+                                options.add(new LatLng(coordinate.getDouble(1),
+                                        coordinate.getDouble(0)));
+                            }
+
+                            mMap.addPolyline(options);
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            Log.d("DBG", "JSONException: " + e.getStackTrace());
+                        }
+                    }
+                });
+    }
+
+    public void loadMarkers () {
+        Log.d("DBG", "loadMarkers: ");
+
+        internalApiClient.getAttractions(0, new VolleyCallback() {
+            @Override
+            public void onSuccess(String result) {
+                try {
+                    Log.d("DBG", "onSuccess: SERVER RESULT: " + result);
+                    JSONArray attractions = new JSONArray(result);
+
+                    Log.d("DBG", "" + attractions.length());
+
+                    for (int i = 0; i < attractions.length(); i++) {
+                        JSONObject attraction = attractions.getJSONObject(i);
+
+                        double lat = attraction.getJSONObject("coordinates").getDouble("lat");
+                        double lon = attraction.getJSONObject("coordinates").getDouble("lon");
+
+                        String name = attraction.getString("name");
+
+                        Log.d("DBG", "lat: " + lat + "; lon: " + lon);
+
+                        mMap.addMarker(new MarkerOptions()
+                                .position(new LatLng(lat, lon))
+                                .title(name)
+                                .snippet("snippet"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     @Override
@@ -113,6 +198,22 @@ public class RadarFragment extends Fragment implements OnMapReadyCallback,
             mMapView.onCreate(null);
             mMapView.onResume();
             mMapView.getMapAsync(this);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        Log.d("ONCALLBACK", "onRequestPermissionsResult");
+        if (requestCode == PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION) {
+            if (permissions.length == 1 &&
+                    permissions[0] == Manifest.permission.ACCESS_FINE_LOCATION &&
+                    grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Log.d("DBG", "Request success");
+                locationPermissionGranted = true;
+            } else {
+                Log.d("DBG", "Permission denied");
+                locationPermissionGranted = false;
+            }
         }
     }
 
@@ -191,105 +292,6 @@ public class RadarFragment extends Fragment implements OnMapReadyCallback,
         Log.d("DBG", "radar updated..."); */
     }
 
-    private void enableMyLocation() {
-        if (ContextCompat.checkSelfPermission(
-                this.getActivity(),
-                Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            Log.d("DBG", "Request success!");
-            locationPermissionGranted = true;
-        } else {
-            ActivityCompat.requestPermissions(this.getActivity(),
-                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
-        }
-    }
-
-    public void loadTestRoute() {
-        openRoutesServiceApiClient.getDirection("foot-walking",
-                "5b3ce3597851110001cf624892e3aee660dd4e36a94e389509ba388c",
-                new LatLng(46.7169941, 11.6589174), new LatLng(47, 12),
-                new VolleyCallback() {
-                    @Override
-                    public void onSuccess(String result) {
-
-                        PolylineOptions options = new PolylineOptions();
-
-                        Log.d("DBG", "loadTestRoute: " + result);
-                        try {
-                            JSONObject route = new JSONObject(result);
-                            JSONArray coordinates = route.getJSONArray("features").
-                                    getJSONObject(0).getJSONObject("geometry").
-                                    getJSONArray("coordinates");
-
-                            for (int i = 0; i < coordinates.length(); i++) {
-                                JSONArray coordinate = coordinates.getJSONArray(i);
-                                Log.d("DBG", coordinate.getDouble(1) + ";"
-                                        + coordinate.getDouble(0));
-
-                                options.add(new LatLng(coordinate.getDouble(1),
-                                        coordinate.getDouble(0)));
-                            }
-
-                            mMap.addPolyline(options);
-
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                            Log.d("DBG", "JSONException: " + e.getStackTrace());
-                        }
-                    }
-                });
-    }
-
-    public void loadMarkers () {
-        Log.d("DBG", "loadMarkers: ");
-
-        internalApiClient.getAttractions(0, new VolleyCallback() {
-            @Override
-            public void onSuccess(String result) {
-                try {
-                    Log.d("DBG", "onSuccess: SERVER RESULT: " + result);
-                    JSONArray attractions = new JSONArray(result);
-
-                    Log.d("DBG", "" + attractions.length());
-
-                    for (int i = 0; i < attractions.length(); i++) {
-                        JSONObject attraction = attractions.getJSONObject(i);
-
-                        double lat = attraction.getJSONObject("coordinates").getDouble("lat");
-                        double lon = attraction.getJSONObject("coordinates").getDouble("lon");
-
-                        String name = attraction.getString("name");
-
-                        Log.d("DBG", "lat: " + lat + "; lon: " + lon);
-
-                        mMap.addMarker(new MarkerOptions()
-                                .position(new LatLng(lat, lon))
-                                .title(name)
-                                .snippet("snippet"));
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        Log.d("ONCALLBACK", "onRequestPermissionsResult");
-        if (requestCode == PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION) {
-            if (permissions.length == 1 &&
-                    permissions[0] == Manifest.permission.ACCESS_FINE_LOCATION &&
-                    grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Log.d("DBG", "Request success");
-                locationPermissionGranted = true;
-            } else {
-                Log.d("DBG", "Permission denied");
-                locationPermissionGranted = false;
-            }
-        }
-    }
-
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) { }
 
@@ -302,6 +304,20 @@ public class RadarFragment extends Fragment implements OnMapReadyCallback,
     @Override
     public boolean onMarkerClick(Marker marker) {
         Log.d("ONCALLBACK", "onMarkerClick");
+        ScrollView scrollView = this.getActivity().findViewById(R.id.attraction_feed);
+        scrollView.setVisibility(View.VISIBLE);
+
+        ObjectAnimator animation = ObjectAnimator.ofFloat(scrollView, "translationY", 500f);
+        animation.setDuration(500);
+        animation.start();
+
         return false;
+    }
+
+    @Override
+    public void onMapClick(LatLng latLng) {
+        Log.d("DBG", "onMapClick: ");
+        ScrollView scrollView = this.getActivity().findViewById(R.id.attraction_feed);
+        scrollView.setVisibility(View.INVISIBLE);
     }
 }

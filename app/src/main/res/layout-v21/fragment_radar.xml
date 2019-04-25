@@ -14,9 +14,9 @@
 
     <ScrollView
         android:id="@+id/attraction_feed"
-        style="@android:style/Widget.Material.ScrollView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="307dp"
+        android:background="#FFFFFF"
         android:visibility="invisible">
 
         <LinearLayout
@@ -25,10 +25,10 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/textView"
+                android:id="@+id/textView2"
                 android:layout_width="match_parent"
-                android:layout_height="287dp"
-                android:text="COOL TEXT" />
+                android:layout_height="58dp"
+                android:text="TextView" />
         </LinearLayout>
     </ScrollView>
 

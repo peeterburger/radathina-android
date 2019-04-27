@@ -1,4 +1,4 @@
-package com.example.myweather.Model;
+package com.fallmerayer.radathina.myweather.model;
 
 public class Coord {
     

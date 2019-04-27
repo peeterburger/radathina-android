@@ -1,4 +1,4 @@
-package com.example.myweather.Common;
+package com.fallmerayer.radathina.myweather.common;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

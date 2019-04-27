@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -14,33 +13,50 @@
 
     <ScrollView
         android:id="@+id/attraction_feed"
+
         android:layout_width="match_parent"
-        android:layout_height="307dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
         android:background="#FFFFFF"
+        android:clipToPadding="false"
         android:visibility="invisible">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="300dp"
             android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/textView2"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="58dp"
-                android:text="TextView" />
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/imageView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    tools:src="@tools:sample/avatars" />
+
+                <TextView
+                    android:id="@+id/textView2"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="Plaka"
+                    android:textSize="30sp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text='Pláka (Greek: Πλάκα) is the old historical neighborhood of Athens, clustered around the northern and eastern slopes of the Acropolis, and incorporating labyrinthine streets and neoclassical architecture. Plaka is built on top of the residential areas of the ancient town of Athens. It is known as the "Neighborhood of the Gods" due to its proximity to the Acropolis and its many archaeological sites.' />
 
             <Button
                 android:id="@+id/button_route"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_width="170dp"
+                android:layout_height="50dp"
                 android:text="Route" />
 
-            <ImageView
-                android:id="@+id/imageView"
-                android:layout_width="match_parent"
-                android:layout_height="453dp"
-                tools:src="@tools:sample/avatars" />
         </LinearLayout>
     </ScrollView>
 

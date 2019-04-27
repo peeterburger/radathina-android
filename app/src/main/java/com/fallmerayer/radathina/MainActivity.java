@@ -2,7 +2,6 @@ package com.fallmerayer.radathina;
 
 import android.Manifest;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -30,8 +29,11 @@ import com.google.android.gms.maps.model.LatLng;
 public class MainActivity extends AppCompatActivity {
 
     String[] PERMISSIONS = {
+            Manifest.permission.INTERNET,
             Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACCESS_NETWORK_STATE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
@@ -88,6 +90,11 @@ public class MainActivity extends AppCompatActivity {
 
         checkPermissions(PERMISSIONS);
 
+        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+        fragmentTransaction.replace(R.id.fram, new HomeFragment(), "FragmentName");
+        setTitle("Home");
+        fragmentTransaction.commit();
+
         // testInternalApi();
         // testLocationSender();
     }
@@ -120,12 +127,6 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d("PERMISSIONS", "All permissions already granted!");
         return true;
-    }
-
-    @Override
-    public void onBackPressed() {
-        ScrollView scrollView = findViewById(R.id.attraction_feed);
-        scrollView.setVisibility(View.INVISIBLE);
     }
 
     private void testLocationSender () {
@@ -182,5 +183,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    @Override
+    public void onBackPressed() {
+        ScrollView scrollView = findViewById(R.id.attraction_feed);
+        scrollView.setVisibility(View.INVISIBLE);
     }
 }

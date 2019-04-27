@@ -96,7 +96,6 @@ public class MainActivity extends AppCompatActivity {
         fragmentTransaction.commit();
 
         // testInternalApi();
-        // testLocationSender();
     }
 
     private void checkPermissions (String... permissionList) {
@@ -127,22 +126,6 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d("PERMISSIONS", "All permissions already granted!");
         return true;
-    }
-
-    private void testLocationSender () {
-        LocationSender locationSender = new LocationSender(this, new ApiClientOptions()
-                .protocol("http")
-                .host("185.5.199.33")
-                .port(5051));
-
-        String androidId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
-
-        locationSender.sendLocation(new LatLng(0, 0), androidId, new VolleyCallback() {
-            @Override
-            public void onSuccess(String result) {
-                Log.d("DBG", "locationSender onSuccess: " + result);
-            }
-        });
     }
 
     private void testInternalApi() {

@@ -20,6 +20,8 @@ import com.fallmerayer.radathina.api.clients.LocationSender;
 import com.fallmerayer.radathina.api.core.ApiClientOptions;
 import com.fallmerayer.radathina.api.clients.InternalApiClient;
 import com.fallmerayer.radathina.api.core.VolleyCallback;
+import com.fallmerayer.radathina.background.BackgroundService;
+import com.fallmerayer.radathina.background.GPSListener;
 import com.fallmerayer.radathina.menufragments.HomeFragment;
 import com.fallmerayer.radathina.menufragments.NotificationFragment;
 import com.fallmerayer.radathina.menufragments.RadarFragment;
@@ -94,6 +96,12 @@ public class MainActivity extends AppCompatActivity {
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
 
         checkPermissions(PERMISSIONS);
+
+        BackgroundService.initialize(this);
+
+        new GPSListener(1000, 10);
+
+        Log.d("DBG", "BackgroundService: " + BackgroundService.getLastKnownLatLng());
 
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         fragmentTransaction.replace(R.id.fram, new HomeFragment(), "FragmentName");

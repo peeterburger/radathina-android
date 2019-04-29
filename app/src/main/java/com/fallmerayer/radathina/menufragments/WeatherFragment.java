@@ -22,9 +22,11 @@ import android.widget.TextView;
 
 import com.fallmerayer.radathina.MainActivity;
 import com.fallmerayer.radathina.R;
+import com.fallmerayer.radathina.background.BackgroundService;
 import com.fallmerayer.radathina.myweather.common.Common;
 import com.fallmerayer.radathina.myweather.helper.Helper;
 import com.fallmerayer.radathina.myweather.model.OpenWeatherMap;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.squareup.picasso.Picasso;
@@ -67,10 +69,10 @@ public class WeatherFragment extends Fragment implements LocationListener {
                     DEFAULT_LOCATION_REFRESH_DISTANCE_METERS,
                     this);
 
-            Location location = locationManager.getLastKnownLocation(provider);
+            LatLng location = BackgroundService.getLastKnownLatLng();
 
-            lat = location.getLatitude();
-            lng = location.getLongitude();
+            lat = location.latitude;
+            lng = location.longitude;
 
             new GetWeather().execute(Common.apiRequest(String.valueOf(lat),String.valueOf(lng)));
 

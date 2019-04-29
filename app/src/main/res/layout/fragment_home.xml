@@ -18,13 +18,21 @@
             android:paddingTop="50dp"
             android:src="@drawable/ic_radathina_logo" />
 
+        <TextView
+            android:id="@+id/txtViewCurrentLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="50dp"
+            android:gravity="center_horizontal|center_vertical"
+            android:text="Location not found" />
+
         <Button
             android:id="@+id/btnSendLocation"
             style="@style/Widget.AppCompat.Button.Borderless"
             android:layout_width="match_parent"
             android:layout_height="91dp"
-            android:layout_marginTop="50dp"
             android:text="Send Location" />
+
     </LinearLayout>
 
 </FrameLayout>

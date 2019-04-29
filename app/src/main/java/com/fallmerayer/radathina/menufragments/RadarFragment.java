@@ -1,6 +1,5 @@
 package com.fallmerayer.radathina.menufragments;
 
-import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.graphics.Color;
 import android.location.Location;
@@ -18,6 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ScrollView;
+import android.widget.TextView;
 
 import com.fallmerayer.radathina.R;
 import com.fallmerayer.radathina.api.clients.InternalApiClient;
@@ -31,6 +31,7 @@ import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
@@ -72,12 +73,15 @@ public class RadarFragment extends Fragment implements
     public static long     DEFAULT_LOCATION_REFRESH_TIME_MILLIS = 1000;
     public static float    DEFAULT_LOCATION_REFRESH_DISTANCE_METERS = 10;
     public static float    DEFAULT_ZOOM = 16;
-    public static float    DEFAULT_RADAR_RADIUS_METERS = 300;
+    public static float    DEFAULT_RADAR_RADIUS_METERS = 3000;
 
     private LatLng lastReceivedLocation;
 
+    private TextView attractionDescription;
+
     private Button btnRoute;
     private ScrollView attractionFeed;
+    private TextView txtViewAttractionTitle;
 
     private boolean isRouteSet = false;
 
@@ -90,8 +94,14 @@ public class RadarFragment extends Fragment implements
         try {
             mMap.setMyLocationEnabled(true);
 
-            updateCamera(new LatLng(locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER).getLatitude(),
-                    locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER).getLongitude()));
+            if (locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER) == null) {
+                lastReceivedLocation = new LatLng(0, 0);
+            } else {
+                lastReceivedLocation = new LatLng(locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER).getLatitude(),
+                        locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER).getLongitude());
+            }
+
+            updateCamera(lastReceivedLocation);
         } catch (SecurityException se) {
             Log.d("PERMISSIONS", "Permission denied");
         }
@@ -167,6 +177,25 @@ public class RadarFragment extends Fragment implements
                         double lat = attraction.getJSONObject("coordinates").getDouble("lat");
                         double lon = attraction.getJSONObject("coordinates").getDouble("lon");
 
+                        String category = attraction.getString("category");
+
+                        float color = BitmapDescriptorFactory.HUE_RED;
+
+                        switch (category) {
+                            case "Sehenswürdigkeiten":
+                                color = BitmapDescriptorFactory.HUE_RED;
+                                break;
+                            case "Essen":
+                                color = BitmapDescriptorFactory.HUE_AZURE;
+                                break;
+                            case "Shoppen":
+                                color = BitmapDescriptorFactory.HUE_ORANGE;
+                                break;
+                            default:
+                                color = BitmapDescriptorFactory.HUE_CYAN;
+                                break;
+                        }
+
                         String name = attraction.getString("name");
 
                         Log.d("DBG", "lat: " + lat + "; lon: " + lon);
@@ -174,7 +203,63 @@ public class RadarFragment extends Fragment implements
                         mMap.addMarker(new MarkerOptions()
                                 .position(new LatLng(lat, lon))
                                 .title(name)
-                                .snippet("snippet"));
+                                .snippet(category)
+                                .icon(BitmapDescriptorFactory.defaultMarker(color)));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    public void loadMarkersNearby () {
+        Log.d("DBG", "loadMarkers: ");
+
+        internalApiClient.getAttractionsNearby(new LatLng(lastReceivedLocation.latitude,
+                lastReceivedLocation.longitude), DEFAULT_RADAR_RADIUS_METERS, new VolleyCallback() {
+            @Override
+            public void onSuccess(String result) {
+                try {
+                    Log.d("DBG", "onSuccess: SERVER RESULT: " + result);
+                    JSONArray attractions = new JSONArray(result);
+
+                    Log.d("DBG", "" + attractions.length());
+
+                    for (int i = 0; i < attractions.length(); i++) {
+                        JSONObject attraction = attractions.getJSONObject(i);
+
+                        double lat = attraction.getJSONObject("coordinates").getDouble("lat");
+                        double lon = attraction.getJSONObject("coordinates").getDouble("lon");
+
+                        String category = attraction.getString("category");
+
+                        float color = BitmapDescriptorFactory.HUE_RED;
+
+                        switch (category) {
+                            case "Sehenswürdigkeiten":
+                                color = BitmapDescriptorFactory.HUE_RED;
+                                break;
+                            case "Essen":
+                                color = BitmapDescriptorFactory.HUE_AZURE;
+                                break;
+                            case "Shoppen":
+                                color = BitmapDescriptorFactory.HUE_ORANGE;
+                                break;
+                            default:
+                                color = BitmapDescriptorFactory.HUE_CYAN;
+                                break;
+                        }
+
+                        String name = attraction.getString("name");
+
+                        Log.d("DBG", "lat: " + lat + "; lon: " + lon);
+
+                        mMap.addMarker(new MarkerOptions()
+                                .position(new LatLng(lat, lon))
+                                .title(name)
+                                .snippet(category)
+                                .icon(BitmapDescriptorFactory.defaultMarker(color)));
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -189,10 +274,7 @@ public class RadarFragment extends Fragment implements
     }
 
     public boolean isGpsAvailable() {
-        if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            return true;
-        }
-        return false;
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
     }
 
     public void updateRadarCircle(LatLng currentLatLng) {
@@ -219,8 +301,8 @@ public class RadarFragment extends Fragment implements
 
         internalApiClient = new InternalApiClient(this.getActivity(), new ApiClientOptions()
                 .protocol("http")
-                .host("192.168.1.100")
-                .port(12345)
+                .host("185.5.199.33")
+                .port(5052)
                 .apiPath("/api/v1")
         );
 
@@ -251,6 +333,8 @@ public class RadarFragment extends Fragment implements
 
         btnRoute = mView.findViewById(R.id.button_route);
         attractionFeed = mView.findViewById(R.id.attraction_feed);
+        attractionDescription = mView.findViewById(R.id.txtViewAttractionDescription);
+        txtViewAttractionTitle = mView.findViewById(R.id.txtViewAttractionTitle);
 
         btnRoute.setOnClickListener(new View.OnClickListener() {
 
@@ -301,6 +385,7 @@ public class RadarFragment extends Fragment implements
             initializeGpsListener();
             loadInitialPosition();
             loadMarkers();
+            // loadMarkersNearby();
         }
     }
 
@@ -329,9 +414,25 @@ public class RadarFragment extends Fragment implements
     public boolean onMarkerClick(Marker marker) {
         Log.d("ONCALLBACK", "onMarkerClick");
 
-        ScrollView scrollView = this.getActivity().findViewById(R.id.attraction_feed);
-        scrollView.setVisibility(View.VISIBLE);
 
+        attractionDescription.setText("loading...");
+
+        internalApiClient.getAttractionByName(marker.getTitle(), new VolleyCallback() {
+            @Override
+            public void onSuccess(String result) {
+                try {
+                    JSONObject attraction = new JSONObject(result);
+                    String description = attraction.getString("description");
+                    attractionDescription.setText(description);
+                } catch (JSONException e) {
+                    Log.d("DBG", "error parsing json");
+                }
+            }
+        });
+
+        txtViewAttractionTitle.setText(marker.getTitle());
+
+        attractionFeed.setVisibility(View.VISIBLE);
         attractionLatLng = marker.getPosition();
 
         return false;

@@ -13,7 +13,8 @@
         android:layout_height="match_parent"
         android:text="@string/title_radar"
         app:layout_constraintBottom_toTopOf="@+id/navigation"
-        tools:layout_editor_absoluteX="0dp" />
+        tools:layout_editor_absoluteX="0dp"
+        />
 
     <android.support.design.widget.BottomNavigationView
         android:id="@+id/navigation"

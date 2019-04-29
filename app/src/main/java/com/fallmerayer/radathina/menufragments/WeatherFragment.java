@@ -69,16 +69,18 @@ public class WeatherFragment extends Fragment implements LocationListener {
                     DEFAULT_LOCATION_REFRESH_DISTANCE_METERS,
                     this);
 
-            LatLng location = BackgroundService.getLastKnownLatLng();
+            if (BackgroundService.getLastKnownLocation() != null) {
 
-            lat = location.latitude;
-            lng = location.longitude;
+                LatLng location = BackgroundService.getLastKnownLatLng();
 
-            new GetWeather().execute(Common.apiRequest(String.valueOf(lat),String.valueOf(lng)));
-
-            if (location != null) {
                 Log.e("DBG", "" + location);
+
+                lat = location.latitude;
+                lng = location.longitude;
+
+                new GetWeather().execute(Common.apiRequest(String.valueOf(lat),String.valueOf(lng)));
             }
+
         } catch (SecurityException se) {
             Log.d("DBG", "Permission denied");
         }
@@ -92,6 +94,9 @@ public class WeatherFragment extends Fragment implements LocationListener {
         wView = inflater.inflate(R.layout.fragment_weather, container, false);
 
         txtCity = wView.findViewById(R.id.txtCity);
+
+        txtCity.setText("loading...");
+
         txtLastUpdate = wView.findViewById(R.id.txtLastUpdate);
         txtDescription = wView.findViewById(R.id.txtDescription);
         txtHumidity = wView.findViewById(R.id.txtHumidity);
@@ -110,7 +115,11 @@ public class WeatherFragment extends Fragment implements LocationListener {
 
         Log.d("DBG", "onLocationChanged: ");
 
-        new GetWeather().execute(Common.apiRequest(String.valueOf(lat),String.valueOf(lng)));
+        try {
+            new GetWeather().execute(Common.apiRequest(String.valueOf(lat),String.valueOf(lng)));
+        } catch (NullPointerException npe) {
+            Log.d("DBG", "NullPointerException");
+        }
     }
 
     private class GetWeather extends AsyncTask<String, Void, String> {

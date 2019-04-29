@@ -91,6 +91,7 @@ public class HomeFragment extends Fragment implements LocationListener {
                 locationSender.sendLocation(getLastReceivedLatLng(), androidId, new VolleyCallback() {
                     @Override
                     public void onSuccess(String result) {
+                        btnSendLocation.setTextColor(Color.GREEN);
                         Log.d("DBG", "locationSender onSuccess: " + result);
                     }
                 });

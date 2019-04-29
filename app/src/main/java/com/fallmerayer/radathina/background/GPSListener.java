@@ -39,6 +39,8 @@ public class GPSListener implements LocationListener {
         if(!BackgroundService.initialized)
             throw new IllegalStateException("BackgroundService not initialized!");
 
+        Log.d("DBG", "BackgroundService location changed: " + location);
+
         BackgroundService.lastKnownLocation = location;
     }
 

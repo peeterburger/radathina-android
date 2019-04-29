@@ -24,20 +24,23 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="300dp"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:layout_margin="10dp"
+            >
 
             <TextView
                 android:id="@+id/txtViewAttractionTitle"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:text="Plaka"
+                android:text="loading..."
                 android:textSize="30sp" />
 
             <TextView
                 android:id="@+id/txtViewAttractionDescription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text='Pláka (Greek: Πλάκα) is the old historical neighborhood of Athens, clustered around the northern and eastern slopes of the Acropolis, and incorporating labyrinthine streets and neoclassical architecture. Plaka is built on top of the residential areas of the ancient town of Athens. It is known as the "Neighborhood of the Gods" due to its proximity to the Acropolis and its many archaeological sites.' />
+                android:text="loading..."
+                android:justificationMode="inter_word" />
 
             <Button
                 android:id="@+id/button_route"

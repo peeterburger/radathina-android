@@ -3,7 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".menufragments.WeatherFragment">
+    tools:context=".menufragments.WeatherFragment"
+    android:layout_marginTop="30dp">
 
     <LinearLayout
         android:id="@+id/activity_main"
@@ -13,14 +14,14 @@
 
         <TextView
             android:id="@+id/txtCity"
-            android:layout_marginTop="40dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text=""
-            android:textStyle="bold"
-            android:textSize="36sp"
+            android:layout_marginTop="40dp"
             android:gravity="center"
-            />
+            android:text=""
+            android:textSize="36sp"
+            android:textStyle="bold"
+            tools:text="loading..." />
 
         <TextView
             android:id="@+id/txtLastUpdate"

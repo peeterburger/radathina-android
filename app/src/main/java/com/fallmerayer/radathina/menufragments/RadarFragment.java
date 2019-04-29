@@ -1,6 +1,8 @@
 package com.fallmerayer.radathina.menufragments;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
@@ -8,6 +10,7 @@ import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -24,6 +27,7 @@ import com.fallmerayer.radathina.api.clients.InternalApiClient;
 import com.fallmerayer.radathina.api.clients.OpenRoutesServiceApiClient;
 import com.fallmerayer.radathina.api.core.ApiClientOptions;
 import com.fallmerayer.radathina.api.core.VolleyCallback;
+import com.fallmerayer.radathina.global.Config;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -73,7 +77,8 @@ public class RadarFragment extends Fragment implements
     public static long     DEFAULT_LOCATION_REFRESH_TIME_MILLIS = 1000;
     public static float    DEFAULT_LOCATION_REFRESH_DISTANCE_METERS = 10;
     public static float    DEFAULT_ZOOM = 16;
-    public static float    DEFAULT_RADAR_RADIUS_METERS = 3000;
+
+    public float    RADAR_RADIUS_METERS = 1000;
 
     private LatLng lastReceivedLocation;
 
@@ -85,6 +90,7 @@ public class RadarFragment extends Fragment implements
 
     private boolean isRouteSet = false;
 
+    private SharedPreferences sharedPreferences;
 
     public RadarFragment() {
         // Required empty public constructor
@@ -179,10 +185,10 @@ public class RadarFragment extends Fragment implements
 
                         String category = attraction.getString("category");
 
-                        float color = BitmapDescriptorFactory.HUE_RED;
+                        float color;
 
                         switch (category) {
-                            case "Sehenswürdigkeiten":
+                            case "Sehenswürdigkeit":
                                 color = BitmapDescriptorFactory.HUE_RED;
                                 break;
                             case "Essen":
@@ -200,11 +206,33 @@ public class RadarFragment extends Fragment implements
 
                         Log.d("DBG", "lat: " + lat + "; lon: " + lon);
 
-                        mMap.addMarker(new MarkerOptions()
-                                .position(new LatLng(lat, lon))
-                                .title(name)
-                                .snippet(category)
-                                .icon(BitmapDescriptorFactory.defaultMarker(color)));
+                        if (sharedPreferences.getBoolean(Config.CURRENT_CHECK_ATTRACTIONS,
+                                true) && category.equals("Sehenswürdigkeit")) {
+                            mMap.addMarker(new MarkerOptions()
+                                    .position(new LatLng(lat, lon))
+                                    .title(name)
+                                    .snippet(category)
+                                    .icon(BitmapDescriptorFactory.defaultMarker(color)));
+                        }
+
+                        if (sharedPreferences.getBoolean(Config.CURRENT_CHECK_FOOD,
+                                false) && category.equals("Essen")) {
+                            mMap.addMarker(new MarkerOptions()
+                                    .position(new LatLng(lat, lon))
+                                    .title(name)
+                                    .snippet(category)
+                                    .icon(BitmapDescriptorFactory.defaultMarker(color)));
+                        }
+
+                        if (sharedPreferences.getBoolean(Config.CURRENT_CHECK_SHOPPING,
+                                false) && category.equals("Shoppen")) {
+                            mMap.addMarker(new MarkerOptions()
+                                    .position(new LatLng(lat, lon))
+                                    .title(name)
+                                    .snippet(category)
+                                    .icon(BitmapDescriptorFactory.defaultMarker(color)));
+                        }
+
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -217,7 +245,7 @@ public class RadarFragment extends Fragment implements
         Log.d("DBG", "loadMarkers: ");
 
         internalApiClient.getAttractionsNearby(new LatLng(lastReceivedLocation.latitude,
-                lastReceivedLocation.longitude), DEFAULT_RADAR_RADIUS_METERS, new VolleyCallback() {
+                lastReceivedLocation.longitude), RADAR_RADIUS_METERS, new VolleyCallback() {
             @Override
             public void onSuccess(String result) {
                 try {
@@ -292,6 +320,11 @@ public class RadarFragment extends Fragment implements
 
         super.onCreate(savedInstanceState);
 
+        sharedPreferences = getActivity().getSharedPreferences("Settings", Activity.MODE_PRIVATE);
+
+        RADAR_RADIUS_METERS = sharedPreferences.getFloat(Config.CURRENT_RADAR_RADIUS_METER,
+                1000);
+
         locationManager = (LocationManager) this.getActivity().getSystemService(
                 Context.LOCATION_SERVICE);
 
@@ -301,10 +334,12 @@ public class RadarFragment extends Fragment implements
 
         internalApiClient = new InternalApiClient(this.getActivity(), new ApiClientOptions()
                 .protocol("http")
-                .host("185.5.199.33")
-                .port(5052)
+                .host(sharedPreferences.getString(Config.CURRENT_INTERNAL_SERVER_IP, "185.5.199.33"))
+                .port(sharedPreferences.getInt(Config.CURRENT_INTERNAL_SERVER_PORT, 12345))
                 .apiPath("/api/v1")
         );
+
+        Log.d("DBG", "internalApiClient: " + sharedPreferences.getString(Config.CURRENT_INTERNAL_SERVER_IP, "185.5.199.33"));
 
         openRoutesServiceApiClient = new OpenRoutesServiceApiClient(this.getActivity(), new ApiClientOptions()
                 .protocol("https")
@@ -316,7 +351,7 @@ public class RadarFragment extends Fragment implements
                 .strokeColor(Color.argb(255, 0, 0, 255))
                 .strokeWidth(3)
                 .fillColor(Color.argb(30, 0, 0,255))
-                .radius(DEFAULT_RADAR_RADIUS_METERS)
+                .radius(RADAR_RADIUS_METERS)
                 .center(new LatLng(-33.87365, 151.20689));
 
         currentRouteOptions = new PolylineOptions()
@@ -417,7 +452,9 @@ public class RadarFragment extends Fragment implements
 
         attractionDescription.setText("loading...");
 
-        internalApiClient.getAttractionByName(marker.getTitle(), new VolleyCallback() {
+        String url = marker.getTitle().replaceAll(" ", "%20");
+
+        internalApiClient.getAttractionByName(url, new VolleyCallback() {
             @Override
             public void onSuccess(String result) {
                 try {

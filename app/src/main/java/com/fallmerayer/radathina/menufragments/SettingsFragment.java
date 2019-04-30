@@ -97,7 +97,7 @@ public class SettingsFragment extends Fragment {
             public void onClick(View v) {
                 settingsTxtInputRadarRadius.setText("1000.0");
                 settingsTxtInputInternalServerIP.setText("185.5.199.33");
-                settingsTxtInputInternalServerPort.setText("12345");
+                settingsTxtInputInternalServerPort.setText("5052");
 
                 settingsCheckAttractions.setChecked(true);
                 settingsCheckFood.setChecked(false);
@@ -120,7 +120,7 @@ public class SettingsFragment extends Fragment {
         settingsTxtInputInternalServerIP.setText("" + sharedPreferences.
                 getString(Config.CURRENT_INTERNAL_SERVER_IP, "185.5.199.33"));
         settingsTxtInputInternalServerPort.setText("" + sharedPreferences.
-                getInt(Config.CURRENT_INTERNAL_SERVER_PORT, 12345));
+                getInt(Config.CURRENT_INTERNAL_SERVER_PORT, 5052));
 
         settingsCheckAttractions.setChecked(sharedPreferences
                 .getBoolean(Config.CURRENT_CHECK_ATTRACTIONS, true));

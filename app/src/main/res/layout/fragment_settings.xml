@@ -9,7 +9,7 @@
     <!-- TODO: Update blank fragment layout -->
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -132,7 +132,7 @@
                 android:layout_width="200dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:background="#00147F"
+                android:background="#00142f"
                 android:text="Restore Defaults"
                 android:textColor="#F8FFFFFF"
                 android:layout_marginLeft="10dp"/>

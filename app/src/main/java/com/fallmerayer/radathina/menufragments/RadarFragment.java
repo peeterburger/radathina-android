@@ -262,7 +262,7 @@ public class RadarFragment extends Fragment implements
 
                         String category = attraction.getString("category");
 
-                        float color = BitmapDescriptorFactory.HUE_RED;
+                        float color;
 
                         switch (category) {
                             case "Sehenswürdigkeiten":
@@ -335,7 +335,7 @@ public class RadarFragment extends Fragment implements
         internalApiClient = new InternalApiClient(this.getActivity(), new ApiClientOptions()
                 .protocol("http")
                 .host(sharedPreferences.getString(Config.CURRENT_INTERNAL_SERVER_IP, "185.5.199.33"))
-                .port(sharedPreferences.getInt(Config.CURRENT_INTERNAL_SERVER_PORT, 12345))
+                .port(sharedPreferences.getInt(Config.CURRENT_INTERNAL_SERVER_PORT, 5052))
                 .apiPath("/api/v1")
         );
 

@@ -1,4 +1,4 @@
-package com.fallmerayer.radathina.myweather.helper;
+package com.fallmerayer.radathina.api.clients.myweather.helper;
 
 import java.io.BufferedReader;
 import java.io.IOException;

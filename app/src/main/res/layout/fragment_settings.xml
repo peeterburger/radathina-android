@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".menufragments.SettingsFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <ScrollView
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ScrollView xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:isScrollContainer="false"
+        tools:context=".menufragments.SettingsFragment">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -28,13 +30,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="30dp"
-                android:text="TextView"
                 android:textSize="20sp"
                 android:textStyle="bold" />
 
             <android.support.design.widget.TextInputLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"/>
+                android:layout_height="match_parent" />
 
             <TextView
                 android:id="@+id/txtViewSettingsRadarRadius"
@@ -118,26 +119,57 @@
 
             </LinearLayout>
 
+            <View
+                android:id="@+id/view"
+                android:layout_width="match_parent"
+                android:layout_height="100dp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="100dp" />
+
+        </LinearLayout>
+
+    </ScrollView>
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="bottom" >
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="68dp"
+            android:gravity="bottom|top|end"
+            android:orientation="horizontal" >
+
             <Button
                 android:id="@+id/settingsBtnSave"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="10dp"
-                android:background="#800000"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_marginStart="10dp"
+                android:background="@drawable/shape_rounded_button"
+                android:backgroundTint="@color/colorPrimaryDark"
+                android:textColor="#FFFFFF"
+                android:textColorHighlight="#00FFFFFF"
                 android:text="Save"
-                android:textColor="#FFFFFF" />
+                android:bottomRightRadius="10dp"
+                />
 
             <Button
                 android:id="@+id/settingsBtnRestoreDefaults"
-                android:layout_width="200dp"
-                android:layout_height="wrap_content"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:text="Load"
+                android:layout_marginStart="10dp"
                 android:layout_weight="1"
-                android:background="#00142f"
-                android:text="Restore Defaults"
-                android:textColor="#F8FFFFFF"
-                android:layout_marginLeft="10dp"/>
-
+                android:background="@drawable/shape_rounded_button"
+                android:backgroundTint="@color/colorPrimary"
+                android:textColor="#F8FFFFFF" />
         </LinearLayout>
-    </ScrollView>
+
+    </RelativeLayout>
 
 </FrameLayout>

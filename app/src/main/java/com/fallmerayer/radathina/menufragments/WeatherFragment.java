@@ -1,17 +1,14 @@
 package com.fallmerayer.radathina.menufragments;
 
 
-import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -20,12 +17,11 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.fallmerayer.radathina.MainActivity;
 import com.fallmerayer.radathina.R;
 import com.fallmerayer.radathina.background.BackgroundService;
-import com.fallmerayer.radathina.myweather.common.Common;
-import com.fallmerayer.radathina.myweather.helper.Helper;
-import com.fallmerayer.radathina.myweather.model.OpenWeatherMap;
+import com.fallmerayer.radathina.api.clients.myweather.common.Common;
+import com.fallmerayer.radathina.api.clients.myweather.helper.Helper;
+import com.fallmerayer.radathina.api.clients.myweather.model.OpenWeatherMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;

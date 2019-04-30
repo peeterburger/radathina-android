@@ -70,7 +70,8 @@ public class MainActivity extends AppCompatActivity {
                 case R.id.navigation_settings:
                     title = "Settings";
                     Log.d("DBG", "Settings pressed: ");
-                    fragmentTransaction.replace(R.id.fram, new SettingsFragment(), "FragmentName");
+                    // fragmentTransaction.replace(R.id.fram, new SettingsFragment(), "FragmentName");
+                    fragmentTransaction.replace(R.id.fram, new SettingsFragment(), "FragmentSettings");
             }
 
             setTitle(title);

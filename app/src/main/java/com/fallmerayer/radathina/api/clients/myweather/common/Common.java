@@ -1,4 +1,4 @@
-package com.fallmerayer.radathina.myweather.common;
+package com.fallmerayer.radathina.api.clients.myweather.common;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

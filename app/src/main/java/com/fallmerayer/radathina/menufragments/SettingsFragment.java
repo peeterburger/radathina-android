@@ -57,6 +57,7 @@ public class SettingsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
+
         cView = inflater.inflate(R.layout.fragment_settings, container, false);
 
         settingsTxtViewAndroidID = cView.findViewById(R.id.settingsTxtViewAndroidID);
@@ -90,6 +91,8 @@ public class SettingsFragment extends Fragment {
                                 settingsCheckShopping.isChecked())
                         .apply();
             }
+
+
         });
 
         settingsBtnRestoreDefaults.setOnClickListener(new View.OnClickListener() {
@@ -112,6 +115,7 @@ public class SettingsFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+
         settingsTxtViewAndroidID.setText(Settings.Secure.getString(getActivity().getContentResolver(),
                 Settings.Secure.ANDROID_ID));
 
@@ -128,5 +132,6 @@ public class SettingsFragment extends Fragment {
                 .getBoolean(Config.CURRENT_CHECK_FOOD, false));
         settingsCheckShopping.setChecked(sharedPreferences
                 .getBoolean(Config.CURRENT_CHECK_SHOPPING, false));
+
     }
 }

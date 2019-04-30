@@ -1,4 +1,4 @@
-package com.fallmerayer.radathina.myweather.model;
+package com.fallmerayer.radathina.api.clients.myweather.model;
 
 import java.util.List;
 

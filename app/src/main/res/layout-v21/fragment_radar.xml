@@ -32,21 +32,30 @@
                 android:id="@+id/txtViewAttractionTitle"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:text="loading..."
+                android:text="Lade..."
                 android:textSize="30sp" />
+
+            <TextView
+                android:id="@+id/txtViewAttractionDistance"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Lade..."
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/txtViewAttractionDescription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="loading..."
-                android:justificationMode="inter_word" />
+                android:justificationMode="inter_word"
+                android:text="Lade..." />
 
             <Button
                 android:id="@+id/button_route"
                 android:layout_width="170dp"
                 android:layout_height="50dp"
-                android:text="Route" />
+                android:backgroundTint="@color/colorAccent"
+                android:text="Route Planen"
+                android:textColor="#FFFFFF" />
 
         </LinearLayout>
     </ScrollView>

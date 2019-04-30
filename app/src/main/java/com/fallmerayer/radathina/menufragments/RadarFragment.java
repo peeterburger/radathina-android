@@ -83,6 +83,7 @@ public class RadarFragment extends Fragment implements
     private LatLng lastReceivedLocation;
 
     private TextView attractionDescription;
+    private TextView txtViewAttractionDistance;
 
     private Button btnRoute;
     private ScrollView attractionFeed;
@@ -315,6 +316,7 @@ public class RadarFragment extends Fragment implements
         attractionFeed = mView.findViewById(R.id.attraction_feed);
         attractionDescription = mView.findViewById(R.id.txtViewAttractionDescription);
         txtViewAttractionTitle = mView.findViewById(R.id.txtViewAttractionTitle);
+        txtViewAttractionDistance = mView.findViewById(R.id.txtViewAttractionDistance);
 
         btnRoute.setOnClickListener(new View.OnClickListener() {
 
@@ -328,7 +330,7 @@ public class RadarFragment extends Fragment implements
                     attractionFeed.setVisibility(View.INVISIBLE);
                     updateCamera(lastReceivedLocation);
                 } catch (SecurityException se) {
-
+                    Log.d("DBG", "GPS permission denied");
                 }
             }
         });
@@ -393,8 +395,16 @@ public class RadarFragment extends Fragment implements
     public boolean onMarkerClick(Marker marker) {
         Log.d("ONCALLBACK", "onMarkerClick");
 
+        attractionDescription.setText("Lade Beschreibung...");
 
-        attractionDescription.setText("loading...");
+        internalApiClient.calculateBeeline(marker.getPosition(), lastReceivedLocation, new VolleyCallback() {
+            @Override
+            public void onSuccess(String result) {
+                double distance = Double.valueOf(result);
+                int iDistance = (int) distance;
+                txtViewAttractionDistance.setText("In " + iDistance + " Metern Entfernung");
+            }
+        });
 
         String url = marker.getTitle().replaceAll(" ", "%20");
 

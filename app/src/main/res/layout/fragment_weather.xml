@@ -21,7 +21,7 @@
             android:text=""
             android:textSize="36sp"
             android:textStyle="bold"
-            tools:text="loading..." />
+            tools:text="Lade Wetter.." />
 
         <TextView
             android:id="@+id/txtLastUpdate"

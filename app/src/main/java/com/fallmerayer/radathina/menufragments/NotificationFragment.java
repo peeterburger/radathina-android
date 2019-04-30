@@ -127,6 +127,7 @@ public class NotificationFragment extends Fragment implements LocationListener {
                         TextView attractionName = new TextView(getActivity());
                         TextView attractionCategory = new TextView(getActivity());
                         TextView attractionPosition = new TextView(getActivity());
+                        final TextView attractionDistance = new TextView(getActivity());
 
                         attractionLayout.setOrientation(LinearLayout.VERTICAL);
                         attractionLayout.setPadding(0, 0, 0, 30);
@@ -138,14 +139,27 @@ public class NotificationFragment extends Fragment implements LocationListener {
                         attractionCategory.setText(category);
                         attractionCategory.setTextColor(color);
 
+                        attractionDistance.setText("Berechne Entfernung...");
+
                         attractionPosition.setText("(lat: " + lat + "; lng " + lon + ")");
                         attractionName.setTypeface(null, Typeface.BOLD);
 
                         attractionLayout.addView(attractionName);
                         attractionLayout.addView(attractionCategory);
+                        attractionLayout.addView(attractionDistance);
                         attractionLayout.addView(attractionPosition);
 
                         notificationFeed.addView(attractionLayout);
+
+                        internalApiClient.calculateBeeline(lastReceivedLocation,
+                                new LatLng(lat, lon), new VolleyCallback() {
+                            @Override
+                            public void onSuccess(String result) {
+                                double distance = Double.valueOf(result);
+                                int iDistance = (int) distance;
+                                attractionDistance.setText("" + iDistance + " Meter von hier");
+                            }
+                        });
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();

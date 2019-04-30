@@ -91,7 +91,7 @@ public class WeatherFragment extends Fragment implements LocationListener {
 
         txtCity = wView.findViewById(R.id.txtCity);
 
-        txtCity.setText("loading...");
+        txtCity.setText("Lade Wetter...");
 
         txtLastUpdate = wView.findViewById(R.id.txtLastUpdate);
         txtDescription = wView.findViewById(R.id.txtDescription);

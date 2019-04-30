@@ -241,61 +241,6 @@ public class RadarFragment extends Fragment implements
         });
     }
 
-    public void loadMarkersNearby () {
-        Log.d("DBG", "loadMarkers: ");
-
-        internalApiClient.getAttractionsNearby(new LatLng(lastReceivedLocation.latitude,
-                lastReceivedLocation.longitude), RADAR_RADIUS_METERS, new VolleyCallback() {
-            @Override
-            public void onSuccess(String result) {
-                try {
-                    Log.d("DBG", "onSuccess: SERVER RESULT: " + result);
-                    JSONArray attractions = new JSONArray(result);
-
-                    Log.d("DBG", "" + attractions.length());
-
-                    for (int i = 0; i < attractions.length(); i++) {
-                        JSONObject attraction = attractions.getJSONObject(i);
-
-                        double lat = attraction.getJSONObject("coordinates").getDouble("lat");
-                        double lon = attraction.getJSONObject("coordinates").getDouble("lon");
-
-                        String category = attraction.getString("category");
-
-                        float color;
-
-                        switch (category) {
-                            case "Sehenswürdigkeiten":
-                                color = BitmapDescriptorFactory.HUE_RED;
-                                break;
-                            case "Essen":
-                                color = BitmapDescriptorFactory.HUE_AZURE;
-                                break;
-                            case "Shoppen":
-                                color = BitmapDescriptorFactory.HUE_ORANGE;
-                                break;
-                            default:
-                                color = BitmapDescriptorFactory.HUE_CYAN;
-                                break;
-                        }
-
-                        String name = attraction.getString("name");
-
-                        Log.d("DBG", "lat: " + lat + "; lon: " + lon);
-
-                        mMap.addMarker(new MarkerOptions()
-                                .position(new LatLng(lat, lon))
-                                .title(name)
-                                .snippet(category)
-                                .icon(BitmapDescriptorFactory.defaultMarker(color)));
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
-
     private boolean isNetworkAvailable() {
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
@@ -420,7 +365,6 @@ public class RadarFragment extends Fragment implements
             initializeGpsListener();
             loadInitialPosition();
             loadMarkers();
-            // loadMarkersNearby();
         }
     }
 

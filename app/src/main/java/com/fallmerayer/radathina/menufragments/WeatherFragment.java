@@ -2,6 +2,7 @@ package com.fallmerayer.radathina.menufragments;
 
 
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -32,8 +33,13 @@ public class WeatherFragment extends Fragment {
 
     private View wView;
 
+    private Context mContext;
+
     private TextView txtCity, txtLastUpdate, txtDescription, txtHumidity, txtTime, txtTimeh, txtCelcius;
     private ImageView imageView;
+
+    private LocationRequest locationRequest;
+    private LocationCallback locationCallback;
 
     private OpenWeatherMap openWeatherMap = new OpenWeatherMap();
 
@@ -42,16 +48,23 @@ public class WeatherFragment extends Fragment {
     }
 
     @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+
+        mContext = context;
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         Log.d("WEATHER", "onCreate");
         super.onCreate(savedInstanceState);
 
-        LocationRequest locationRequest = LocationRequest.create();
+        locationRequest = LocationRequest.create();
         locationRequest.setInterval(600000);
         locationRequest.setFastestInterval(3000);
         locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
 
-        LocationCallback locationCallback = new LocationCallback() {
+        locationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(LocationResult locationResult) {
                 if (locationResult == null) {
@@ -68,6 +81,32 @@ public class WeatherFragment extends Fragment {
 
             }
         };
+
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        Log.d("WEATHER", "onCreateView");
+
+        wView = inflater.inflate(R.layout.fragment_weather, container, false);
+
+        txtCity = wView.findViewById(R.id.txtCity);
+        txtCity.setText("Lade Wetter...");
+        txtLastUpdate = wView.findViewById(R.id.txtLastUpdate);
+        txtDescription = wView.findViewById(R.id.txtDescription);
+        txtHumidity = wView.findViewById(R.id.txtHumidity);
+        txtTime = wView.findViewById(R.id.txtTime);
+        txtTimeh = wView.findViewById(R.id.txtTimeh);
+        txtCelcius = wView.findViewById(R.id.txtCelcius);
+        imageView = wView.findViewById(R.id.imageView);
+
+        return wView;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
 
         try {
 
@@ -92,32 +131,11 @@ public class WeatherFragment extends Fragment {
         } catch (SecurityException se) {
             Log.d("DBG", "GPS Permission denied");
         }
-    }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        Log.d("WEATHER", "onCreateView");
-
-        wView = inflater.inflate(R.layout.fragment_weather, container, false);
-
-        txtCity = wView.findViewById(R.id.txtCity);
-
-        txtCity.setText("Lade Wetter...");
-
-        txtLastUpdate = wView.findViewById(R.id.txtLastUpdate);
-        txtDescription = wView.findViewById(R.id.txtDescription);
-        txtHumidity = wView.findViewById(R.id.txtHumidity);
-        txtTime = wView.findViewById(R.id.txtTime);
-        txtTimeh = wView.findViewById(R.id.txtTimeh);
-        txtCelcius = wView.findViewById(R.id.txtCelcius);
-        imageView = wView.findViewById(R.id.imageView);
-
-        return wView;
     }
 
     private class GetWeather extends AsyncTask<String, Void, String> {
-        ProgressDialog pd = new ProgressDialog(getActivity());
+        ProgressDialog pd = new ProgressDialog(mContext);
 
         @Override
         protected String doInBackground(String... params) {

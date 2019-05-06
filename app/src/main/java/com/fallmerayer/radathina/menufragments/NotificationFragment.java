@@ -23,64 +23,39 @@ import com.fallmerayer.radathina.api.clients.InternalApiClient;
 import com.fallmerayer.radathina.api.core.ApiClientOptions;
 import com.fallmerayer.radathina.api.core.VolleyCallback;
 import com.fallmerayer.radathina.global.Global;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.tasks.OnSuccessListener;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class NotificationFragment extends Fragment implements LocationListener {
+public class NotificationFragment extends Fragment {
 
     private View nView;
 
-    private LocationManager locationManager;
-
     private InternalApiClient internalApiClient;
 
-    public static long     DEFAULT_LOCATION_REFRESH_TIME_MILLIS = 100000;
-    public static float    DEFAULT_LOCATION_REFRESH_DISTANCE_METERS = 100;
-
-    public float    RADAR_RADIUS_METERS = 1000;
-
-    private LatLng lastReceivedLocation;
+    public float RADAR_RADIUS_METERS = 1000;
 
     private LinearLayout notificationFeed;
 
     private SharedPreferences sharedPreferences;
 
+    private LocationRequest locationRequest;
+    private LocationCallback locationCallback;
+
     public NotificationFragment() {
         // Required empty public constructor
     }
 
-    public void loadInitialPosition() {
-        try {
-            if (locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER) == null) {
-                // lastReceivedLocation = BackgroundService.getLastKnownLatLng();
-            } else {
-                lastReceivedLocation = new LatLng(locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER).getLatitude(),
-                        locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER).getLongitude());
-            }
-        } catch (SecurityException se) {
-            Log.d("PERMISSIONS", "Permission denied");
-        }
-    }
-
-    public void initializeGpsListener() {
-        try {
-            locationManager.requestLocationUpdates(
-                    LocationManager.GPS_PROVIDER, DEFAULT_LOCATION_REFRESH_TIME_MILLIS,
-                    DEFAULT_LOCATION_REFRESH_DISTANCE_METERS,
-                    this);
-        } catch (SecurityException se) {
-            Log.d("PERMISSIONS", "Permission denied");
-        }
-    }
-
-    public void loadMarkersNearby () {
+    public void loadMarkersNearby (LatLng location) {
         Log.d("DBG", "loadMarkers: ");
 
-        internalApiClient.getAttractionsNearby(new LatLng(lastReceivedLocation.latitude,
-                lastReceivedLocation.longitude), RADAR_RADIUS_METERS, new VolleyCallback() {
+        internalApiClient.getAttractionsNearby(location, RADAR_RADIUS_METERS, new VolleyCallback() {
             @Override
             public void onSuccess(String result) {
                 try {
@@ -93,8 +68,8 @@ public class NotificationFragment extends Fragment implements LocationListener {
                     for (int i = 0; i < attractions.length(); i++) {
                         JSONObject attraction = attractions.getJSONObject(i);
 
-                        double lat = attraction.getJSONObject("coordinates").getDouble("lat");
-                        double lon = attraction.getJSONObject("coordinates").getDouble("lon");
+                        final double lat = attraction.getJSONObject("coordinates").getDouble("lat");
+                        final double lon = attraction.getJSONObject("coordinates").getDouble("lon");
 
                         String category = attraction.getString("category");
 
@@ -147,15 +122,30 @@ public class NotificationFragment extends Fragment implements LocationListener {
 
                         notificationFeed.addView(attractionLayout);
 
-                        internalApiClient.calculateBeeline(lastReceivedLocation,
-                                new LatLng(lat, lon), new VolleyCallback() {
-                            @Override
-                            public void onSuccess(String result) {
-                                double distance = Double.valueOf(result);
-                                int iDistance = (int) distance;
-                                attractionDistance.setText("" + iDistance + " Meter von hier");
-                            }
-                        });
+                        try {
+                            Global.fusedLocationClient.getLastLocation()
+                                    .addOnSuccessListener(getActivity(),
+                                            new OnSuccessListener<Location>() {
+
+                                                @Override
+                                                public void onSuccess(Location location) {
+                                                    internalApiClient.calculateBeeline(new LatLng(location.getLatitude(),
+                                                                    location.getLongitude()),
+                                                            new LatLng(lat, lon), new VolleyCallback() {
+                                                                @Override
+                                                                public void onSuccess(String result) {
+                                                                    double distance = Double.valueOf(result);
+                                                                    int iDistance = (int) distance;
+                                                                    attractionDistance.setText("" + iDistance + " Meter von hier");
+                                                                }
+                                                            });
+                                                }
+
+                                            });
+                        } catch (SecurityException se) {
+                            Log.d("DBG", "GPS Permission denied");
+                        }
+
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -175,8 +165,24 @@ public class NotificationFragment extends Fragment implements LocationListener {
         RADAR_RADIUS_METERS = sharedPreferences.getFloat(Global.CURRENT_RADAR_RADIUS_METER,
                 1000);
 
-        locationManager = (LocationManager) this.getActivity().getSystemService(
-                Context.LOCATION_SERVICE);
+        locationRequest = LocationRequest.create();
+        locationRequest.setInterval(60000);
+        locationRequest.setFastestInterval(30000);
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+        locationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                if (locationResult == null) {
+                    return;
+                }
+
+                Location location = locationResult.getLastLocation();
+
+                loadMarkersNearby(new LatLng(location.getLatitude(), location.getLongitude()));
+
+            }
+        };
 
         internalApiClient = new InternalApiClient(this.getActivity(), new ApiClientOptions()
                 .protocol("http")
@@ -205,39 +211,23 @@ public class NotificationFragment extends Fragment implements LocationListener {
     public void onStart() {
         super.onStart();
 
-        initializeGpsListener();
-        loadInitialPosition();
-    }
+        try {
+            Global.fusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(getActivity(), new OnSuccessListener<Location>() {
+                        @Override
+                        public void onSuccess(Location location) {
+                            if (location != null) {
+                                loadMarkersNearby(new LatLng(location.getLatitude(),
+                                        location.getLongitude()));
+                            }
+                        }
+                    });
 
-    @Override
-    public void onLocationChanged(Location location) {
-        Log.d("ONCALLBACK", "onLocationChanged");
-
-        while(location == null) {
-            try {
-                location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            } catch (SecurityException se) {
-                Log.d("DBG", "permission denied: ");
-            }
+            Global.fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback,
+                    null);
+        } catch (SecurityException se) {
+            Log.d("DBG", "GPS Permission denied");
         }
-
-        lastReceivedLocation = new LatLng(location.getLatitude(), location.getLongitude());
-        loadMarkersNearby();
-    }
-
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-
-    }
-
-    @Override
-    public void onProviderEnabled(String provider) {
-
-    }
-
-    @Override
-    public void onProviderDisabled(String provider) {
-
     }
 
 }

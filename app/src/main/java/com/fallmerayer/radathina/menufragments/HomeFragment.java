@@ -130,8 +130,12 @@ public class HomeFragment extends Fragment {
 
                         @Override
                         public void onSuccess(Location location) {
-                            txtViewCurrentLocation.setText("Latitude:\t" + location.getLatitude() +
-                                    "\nLongitude:\t" + location.getLongitude());
+
+                            if (location != null) {
+                                txtViewCurrentLocation.setText("Latitude:\t" + location.getLatitude() +
+                                        "\nLongitude:\t" + location.getLongitude());
+                            }
+
                         }
 
                     });

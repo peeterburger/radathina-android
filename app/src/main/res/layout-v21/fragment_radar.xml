@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".menufragments.RadarFragment">
+
+    <com.google.android.gms.maps.MapView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/map"
+        />
+
+    <ScrollView
+        android:id="@+id/attraction_feed"
+
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:background="#FFFFFF"
+        android:clipToPadding="false"
+        android:visibility="invisible">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:orientation="vertical"
+            android:layout_margin="10dp"
+            >
+
+            <TextView
+                android:id="@+id/txtViewAttractionTitle"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="Lade..."
+                android:textSize="30sp" />
+
+            <TextView
+                android:id="@+id/txtViewAttractionDistance"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Lade..."
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/txtViewAttractionDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:justificationMode="inter_word"
+                android:text="Lade..." />
+
+            <Button
+                android:id="@+id/button_route"
+                android:layout_width="170dp"
+                android:layout_height="50dp"
+                android:backgroundTint="@color/colorAccent"
+                android:text="Route Planen"
+                android:textColor="#FFFFFF" />
+
+        </LinearLayout>
+    </ScrollView>
+
+</FrameLayout>

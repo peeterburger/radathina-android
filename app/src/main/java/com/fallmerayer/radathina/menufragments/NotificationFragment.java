@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.graphics.drawable.GradientDrawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -23,15 +22,12 @@ import com.fallmerayer.radathina.R;
 import com.fallmerayer.radathina.api.clients.InternalApiClient;
 import com.fallmerayer.radathina.api.core.ApiClientOptions;
 import com.fallmerayer.radathina.api.core.VolleyCallback;
-import com.fallmerayer.radathina.background.BackgroundService;
-import com.fallmerayer.radathina.global.Config;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.fallmerayer.radathina.global.Global;
 import com.google.android.gms.maps.model.LatLng;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
 public class NotificationFragment extends Fragment implements LocationListener {
 
@@ -59,7 +55,7 @@ public class NotificationFragment extends Fragment implements LocationListener {
     public void loadInitialPosition() {
         try {
             if (locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER) == null) {
-                lastReceivedLocation = BackgroundService.getLastKnownLatLng();
+                // lastReceivedLocation = BackgroundService.getLastKnownLatLng();
             } else {
                 lastReceivedLocation = new LatLng(locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER).getLatitude(),
                         locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER).getLongitude());
@@ -176,7 +172,7 @@ public class NotificationFragment extends Fragment implements LocationListener {
 
         sharedPreferences = getActivity().getSharedPreferences("Settings", Activity.MODE_PRIVATE);
 
-        RADAR_RADIUS_METERS = sharedPreferences.getFloat(Config.CURRENT_RADAR_RADIUS_METER,
+        RADAR_RADIUS_METERS = sharedPreferences.getFloat(Global.CURRENT_RADAR_RADIUS_METER,
                 1000);
 
         locationManager = (LocationManager) this.getActivity().getSystemService(
@@ -184,12 +180,12 @@ public class NotificationFragment extends Fragment implements LocationListener {
 
         internalApiClient = new InternalApiClient(this.getActivity(), new ApiClientOptions()
                 .protocol("http")
-                .host(sharedPreferences.getString(Config.CURRENT_INTERNAL_SERVER_IP, "185.5.199.33"))
-                .port(sharedPreferences.getInt(Config.CURRENT_INTERNAL_SERVER_PORT, 5052))
+                .host(sharedPreferences.getString(Global.CURRENT_INTERNAL_SERVER_IP, "185.5.199.33"))
+                .port(sharedPreferences.getInt(Global.CURRENT_INTERNAL_SERVER_PORT, 5052))
                 .apiPath("/api/v1")
         );
 
-        Log.d("DBG", "internalApiClient: " + sharedPreferences.getString(Config.CURRENT_INTERNAL_SERVER_IP, "185.5.199.33"));
+        Log.d("DBG", "internalApiClient: " + sharedPreferences.getString(Global.CURRENT_INTERNAL_SERVER_IP, "185.5.199.33"));
 
     }
 

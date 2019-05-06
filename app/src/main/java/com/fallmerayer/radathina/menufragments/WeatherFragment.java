@@ -3,12 +3,13 @@ package com.fallmerayer.radathina.menufragments;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.IntentSender;
 import android.location.Criteria;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -17,32 +18,36 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.fallmerayer.radathina.MainActivity;
 import com.fallmerayer.radathina.R;
-import com.fallmerayer.radathina.background.BackgroundService;
 import com.fallmerayer.radathina.api.clients.myweather.common.Common;
 import com.fallmerayer.radathina.api.clients.myweather.helper.Helper;
 import com.fallmerayer.radathina.api.clients.myweather.model.OpenWeatherMap;
-import com.google.android.gms.maps.model.LatLng;
+import com.fallmerayer.radathina.global.Global;
+import com.google.android.gms.common.api.ResolvableApiException;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResponse;
+import com.google.android.gms.location.SettingsClient;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.squareup.picasso.Picasso;
 
 import java.lang.reflect.Type;
 
-public class WeatherFragment extends Fragment implements LocationListener {
+public class WeatherFragment extends Fragment {
 
     private View wView;
 
     private TextView txtCity, txtLastUpdate, txtDescription, txtHumidity, txtTime, txtTimeh, txtCelcius;
     private ImageView imageView;
 
-    public static long     DEFAULT_LOCATION_REFRESH_TIME_MILLIS = 100000;
-    public static float    DEFAULT_LOCATION_REFRESH_DISTANCE_METERS = 1000;
-
-    private LocationManager locationManager;
-    private String provider;
-
-    private static double lat, lng;
     private OpenWeatherMap openWeatherMap = new OpenWeatherMap();
 
     public WeatherFragment() {
@@ -54,31 +59,51 @@ public class WeatherFragment extends Fragment implements LocationListener {
         Log.d("WEATHER", "onCreate");
         super.onCreate(savedInstanceState);
 
-        locationManager = (LocationManager) this.getActivity().getSystemService(
-                Context.LOCATION_SERVICE);
-        provider = locationManager.getBestProvider(new Criteria(), false);
+        LocationRequest locationRequest = LocationRequest.create();
+        locationRequest.setInterval(600000);
+        locationRequest.setFastestInterval(3000);
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+        LocationCallback locationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                if (locationResult == null) {
+                    return;
+                }
+
+                Location location = locationResult.getLastLocation();
+
+                new GetWeather()
+                        .execute(Common.apiRequest(
+                                String.valueOf(location.getLatitude()),
+                                String.valueOf(location.getLongitude())
+                        ));
+
+            }
+        };
 
         try {
 
-            locationManager.requestLocationUpdates(
-                    LocationManager.GPS_PROVIDER, DEFAULT_LOCATION_REFRESH_TIME_MILLIS,
-                    DEFAULT_LOCATION_REFRESH_DISTANCE_METERS,
-                    this);
+            Global.fusedLocationClient.requestLocationUpdates(locationRequest,
+                    locationCallback, null);
 
-            if (BackgroundService.getLastKnownLocation() != null) {
+            Global.fusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(getActivity(), new OnSuccessListener<Location>() {
+                        @Override
+                        public void onSuccess(Location location) {
 
-                LatLng location = BackgroundService.getLastKnownLatLng();
-
-                Log.e("DBG", "" + location);
-
-                lat = location.latitude;
-                lng = location.longitude;
-
-                new GetWeather().execute(Common.apiRequest(String.valueOf(lat),String.valueOf(lng)));
-            }
+                            if (location != null) {
+                                new GetWeather()
+                                        .execute(Common.apiRequest(
+                                                String.valueOf(location.getLatitude()),
+                                                String.valueOf(location.getLongitude())
+                                        ));
+                            }
+                        }
+                    });
 
         } catch (SecurityException se) {
-            Log.d("DBG", "Permission denied");
+            Log.d("DBG", "GPS Permission denied");
         }
     }
 
@@ -104,34 +129,12 @@ public class WeatherFragment extends Fragment implements LocationListener {
         return wView;
     }
 
-    @Override
-    public void onLocationChanged(Location location) {
-        lat = location.getLatitude();
-        lng = location.getLongitude();
-
-        Log.d("DBG", "onLocationChanged: ");
-
-        try {
-            new GetWeather().execute(Common.apiRequest(String.valueOf(lat),String.valueOf(lng)));
-        } catch (NullPointerException npe) {
-            Log.d("DBG", "NullPointerException");
-        }
-    }
-
     private class GetWeather extends AsyncTask<String, Void, String> {
         ProgressDialog pd = new ProgressDialog(getActivity());
 
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            // pd.setTitle("Bitte warten...");
-            // pd.show();
-        }
-
         @Override
         protected String doInBackground(String... params) {
-            String stream = null;
+            String stream;
             String urlString = params[0];
             Helper http = new Helper();
             stream = http.getHTTPData(urlString);
@@ -164,18 +167,4 @@ public class WeatherFragment extends Fragment implements LocationListener {
 
     }
 
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-
-    }
-
-    @Override
-    public void onProviderEnabled(String provider) {
-
-    }
-
-    @Override
-    public void onProviderDisabled(String provider) {
-
-    }
 }

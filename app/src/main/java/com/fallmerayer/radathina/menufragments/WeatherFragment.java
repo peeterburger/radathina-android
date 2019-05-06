@@ -2,14 +2,9 @@ package com.fallmerayer.radathina.menufragments;
 
 
 import android.app.ProgressDialog;
-import android.content.Context;
-import android.content.IntentSender;
-import android.location.Criteria;
 import android.location.Location;
-import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -18,23 +13,15 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.fallmerayer.radathina.MainActivity;
 import com.fallmerayer.radathina.R;
 import com.fallmerayer.radathina.api.clients.myweather.common.Common;
 import com.fallmerayer.radathina.api.clients.myweather.helper.Helper;
 import com.fallmerayer.radathina.api.clients.myweather.model.OpenWeatherMap;
 import com.fallmerayer.radathina.global.Global;
-import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.LocationSettingsRequest;
-import com.google.android.gms.location.LocationSettingsResponse;
-import com.google.android.gms.location.SettingsClient;
-import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.squareup.picasso.Picasso;
@@ -62,7 +49,7 @@ public class WeatherFragment extends Fragment {
         LocationRequest locationRequest = LocationRequest.create();
         locationRequest.setInterval(600000);
         locationRequest.setFastestInterval(3000);
-        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
 
         LocationCallback locationCallback = new LocationCallback() {
             @Override

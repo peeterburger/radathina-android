@@ -76,9 +76,9 @@ public class RadarFragment extends Fragment implements
     private PolylineOptions currentRouteOptions;
     private Polyline currentRoute;
 
-    public static float    DEFAULT_ZOOM = 16;
+    public static float DEFAULT_ZOOM = 16;
 
-    public float    RADAR_RADIUS_METERS = 1000;
+    public float RADAR_RADIUS_METERS = 1000;
 
     private TextView attractionDescription;
     private TextView txtViewAttractionDistance;

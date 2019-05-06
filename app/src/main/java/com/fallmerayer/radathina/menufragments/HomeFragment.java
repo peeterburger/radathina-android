@@ -1,15 +1,10 @@
 package com.fallmerayer.radathina.menufragments;
 
 
-import android.content.Context;
 import android.graphics.Color;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -20,31 +15,28 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.fallmerayer.radathina.R;
-import com.fallmerayer.radathina.api.clients.InternalApiClient;
 import com.fallmerayer.radathina.api.clients.LocationSender;
-import com.fallmerayer.radathina.api.clients.OpenRoutesServiceApiClient;
 import com.fallmerayer.radathina.api.core.ApiClientOptions;
 import com.fallmerayer.radathina.api.core.VolleyCallback;
-import com.google.android.gms.maps.model.CircleOptions;
+import com.fallmerayer.radathina.global.Global;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.gms.tasks.OnSuccessListener;
 
-public class HomeFragment extends Fragment implements LocationListener {
+public class HomeFragment extends Fragment {
 
     private View hView;
 
     private Button btnSendLocation;
 
-    private LocationManager locationManager;
-
     private LocationSender locationSender;
 
     private TextView txtViewCurrentLocation;
 
-    private Location lastReceivedLocation;
-
-    public static long     DEFAULT_LOCATION_REFRESH_TIME_MILLIS = 1000;
-    public static float    DEFAULT_LOCATION_REFRESH_DISTANCE_METERS = 10;
+    private LocationRequest locationRequest;
+    private LocationCallback locationCallback;
 
     public HomeFragment() {
         // Required empty public constructor
@@ -56,17 +48,25 @@ public class HomeFragment extends Fragment implements LocationListener {
 
         super.onCreate(savedInstanceState);
 
-        locationManager = (LocationManager) this.getActivity().getSystemService(
-                Context.LOCATION_SERVICE);
+        locationRequest = LocationRequest.create();
+        locationRequest.setInterval(1000);
+        locationRequest.setFastestInterval(500);
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
-        try {
-            locationManager.requestLocationUpdates(
-                    LocationManager.GPS_PROVIDER, DEFAULT_LOCATION_REFRESH_TIME_MILLIS,
-                    DEFAULT_LOCATION_REFRESH_DISTANCE_METERS,
-                    this);
-        } catch (SecurityException se) {
-            Log.d("DBG", "permission denied");
-        }
+        locationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                if (locationResult == null) {
+                    return;
+                }
+
+                Location location = locationResult.getLastLocation();
+
+                txtViewCurrentLocation.setText("Latitude:\t" + location.getLatitude() +
+                        "\nLongitude:\t" + location.getLongitude());
+
+            }
+        };
 
         locationSender = new LocationSender(getActivity(), new ApiClientOptions()
                 .protocol("http")
@@ -85,55 +85,58 @@ public class HomeFragment extends Fragment implements LocationListener {
         btnSendLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String androidId = Settings.Secure.getString(getActivity().getContentResolver(),
-                        Settings.Secure.ANDROID_ID);
 
-                locationSender.sendLocation(getLastReceivedLatLng(), androidId, new VolleyCallback() {
-                    @Override
-                    public void onSuccess(String result) {
-                        btnSendLocation.setTextColor(Color.GREEN);
-                        Log.d("DBG", "locationSender onSuccess: " + result);
-                    }
-                });
+                try {
+                    Global.fusedLocationClient.getLastLocation()
+                            .addOnSuccessListener(HomeFragment.this.getActivity(), new OnSuccessListener<Location>() {
+
+                                @Override
+                                public void onSuccess(Location location) {
+
+                                    LatLng latLng = new LatLng(location.getLatitude(),
+                                            location.getLongitude());
+
+                                    String androidId = Settings.Secure.getString(getActivity().getContentResolver(),
+                                            Settings.Secure.ANDROID_ID);
+
+                                    locationSender.sendLocation(latLng, androidId, new VolleyCallback() {
+                                        @Override
+                                        public void onSuccess(String result) {
+                                            btnSendLocation.setTextColor(Color.GREEN);
+                                            Log.d("DBG", "locationSender onSuccess: " + result);
+                                        }
+                                    });
+                                }
+                            });
+                } catch (SecurityException se) {
+                    Log.d("DBG", "GPS permission denied");
+                }
             }
         });
 
         return hView;
     }
 
-    public LatLng getLastReceivedLatLng() {
-        if (lastReceivedLocation == null) {
-            return new LatLng(0, 0);
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        try {
+            Global.fusedLocationClient.requestLocationUpdates(locationRequest,
+                    locationCallback, null);
+
+            Global.fusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(HomeFragment.this.getActivity(), new OnSuccessListener<Location>() {
+
+                        @Override
+                        public void onSuccess(Location location) {
+                            txtViewCurrentLocation.setText("Latitude:\t" + location.getLatitude() +
+                                    "\nLongitude:\t" + location.getLongitude());
+                        }
+
+                    });
+        } catch (SecurityException se) {
+            Log.d("DBG", "GPS permission denied");
         }
-
-        return new LatLng(lastReceivedLocation.getLatitude(), lastReceivedLocation.getLongitude());
-    }
-
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-        lastReceivedLocation = location;
-        txtViewCurrentLocation.setText("Latitude:\t" + location.getLatitude() +
-                "\nLongitude:\t" + location.getLongitude());
-    }
-
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-
-    }
-
-    @Override
-    public void onProviderEnabled(String provider) {
-
-    }
-
-    @Override
-    public void onProviderDisabled(String provider) {
-
     }
 }

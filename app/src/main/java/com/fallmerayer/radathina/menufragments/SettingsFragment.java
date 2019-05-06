@@ -17,6 +17,7 @@ import android.widget.CheckBox;
 import android.widget.TextView;
 
 import com.fallmerayer.radathina.R;
+import com.fallmerayer.radathina.global.Config;
 import com.fallmerayer.radathina.global.Global;
 
 
@@ -75,17 +76,17 @@ public class SettingsFragment extends Fragment {
             @Override
             public void onClick(View v) {
 
-                sharedPreferences.edit().putFloat(Global.CURRENT_RADAR_RADIUS_METER,
+                sharedPreferences.edit().putFloat(Config.KEY_RADAR_RADIUS_METER,
                                 Float.valueOf(settingsTxtInputRadarRadius.getText().toString()))
-                        .putString(Global.CURRENT_INTERNAL_SERVER_IP,
+                        .putString(Config.KEY_INTERNAL_SERVER_IP,
                                 settingsTxtInputInternalServerIP.getText().toString())
-                        .putInt(Global.CURRENT_INTERNAL_SERVER_PORT,
+                        .putInt(Config.KEY_INTERNAL_SERVER_PORT,
                                 Integer.valueOf(settingsTxtInputInternalServerPort.getText().toString()))
-                        .putBoolean(Global.CURRENT_CHECK_ATTRACTIONS,
+                        .putBoolean(Config.KEY_CHECK_ATTRACTIONS,
                                 settingsCheckAttractions.isChecked())
-                        .putBoolean(Global.CURRENT_CHECK_FOOD,
+                        .putBoolean(Config.KEY_CHECK_FOOD,
                                 settingsCheckFood.isChecked())
-                        .putBoolean(Global.CURRENT_CHECK_SHOPPING,
+                        .putBoolean(Config.KEY_CHECK_SHOPPING,
                                 settingsCheckShopping.isChecked())
                         .apply();
             }
@@ -118,18 +119,18 @@ public class SettingsFragment extends Fragment {
                 Settings.Secure.ANDROID_ID));
 
         settingsTxtInputRadarRadius.setText("" + sharedPreferences.
-                getFloat(Global.CURRENT_RADAR_RADIUS_METER, 1000));
+                getFloat(Config.KEY_RADAR_RADIUS_METER, 1000));
         settingsTxtInputInternalServerIP.setText("" + sharedPreferences.
-                getString(Global.CURRENT_INTERNAL_SERVER_IP, "185.5.199.33"));
+                getString(Config.KEY_INTERNAL_SERVER_IP, "185.5.199.33"));
         settingsTxtInputInternalServerPort.setText("" + sharedPreferences.
-                getInt(Global.CURRENT_INTERNAL_SERVER_PORT, 5052));
+                getInt(Config.KEY_INTERNAL_SERVER_PORT, 5052));
 
         settingsCheckAttractions.setChecked(sharedPreferences
-                .getBoolean(Global.CURRENT_CHECK_ATTRACTIONS, true));
+                .getBoolean(Config.KEY_CHECK_ATTRACTIONS, true));
         settingsCheckFood.setChecked(sharedPreferences
-                .getBoolean(Global.CURRENT_CHECK_FOOD, false));
+                .getBoolean(Config.KEY_CHECK_FOOD, false));
         settingsCheckShopping.setChecked(sharedPreferences
-                .getBoolean(Global.CURRENT_CHECK_SHOPPING, false));
+                .getBoolean(Config.KEY_CHECK_SHOPPING, false));
 
     }
 }

@@ -27,6 +27,7 @@ import com.fallmerayer.radathina.api.clients.OpenRoutesServiceApiClient;
 import com.fallmerayer.radathina.api.clients.myweather.common.Common;
 import com.fallmerayer.radathina.api.core.ApiClientOptions;
 import com.fallmerayer.radathina.api.core.VolleyCallback;
+import com.fallmerayer.radathina.global.Config;
 import com.fallmerayer.radathina.global.Global;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -178,7 +179,7 @@ public class RadarFragment extends Fragment implements
 
                         Log.d("DBG", "lat: " + lat + "; lon: " + lon);
 
-                        if (sharedPreferences.getBoolean(Global.CURRENT_CHECK_ATTRACTIONS,
+                        if (sharedPreferences.getBoolean(Config.KEY_CHECK_ATTRACTIONS,
                                 true) && category.equals("Sehenswürdigkeit")) {
                             mMap.addMarker(new MarkerOptions()
                                     .position(new LatLng(lat, lon))
@@ -187,7 +188,7 @@ public class RadarFragment extends Fragment implements
                                     .icon(BitmapDescriptorFactory.defaultMarker(color)));
                         }
 
-                        if (sharedPreferences.getBoolean(Global.CURRENT_CHECK_FOOD,
+                        if (sharedPreferences.getBoolean(Config.KEY_CHECK_FOOD,
                                 false) && category.equals("Essen")) {
                             mMap.addMarker(new MarkerOptions()
                                     .position(new LatLng(lat, lon))
@@ -196,7 +197,7 @@ public class RadarFragment extends Fragment implements
                                     .icon(BitmapDescriptorFactory.defaultMarker(color)));
                         }
 
-                        if (sharedPreferences.getBoolean(Global.CURRENT_CHECK_SHOPPING,
+                        if (sharedPreferences.getBoolean(Config.KEY_CHECK_SHOPPING,
                                 false) && category.equals("Shoppen")) {
                             mMap.addMarker(new MarkerOptions()
                                     .position(new LatLng(lat, lon))
@@ -239,7 +240,7 @@ public class RadarFragment extends Fragment implements
 
         sharedPreferences = getActivity().getSharedPreferences("Settings", Activity.MODE_PRIVATE);
 
-        RADAR_RADIUS_METERS = sharedPreferences.getFloat(Global.CURRENT_RADAR_RADIUS_METER,
+        RADAR_RADIUS_METERS = sharedPreferences.getFloat(Config.KEY_RADAR_RADIUS_METER,
                 1000);
 
         locationManager = (LocationManager) this.getActivity().getSystemService(
@@ -251,12 +252,12 @@ public class RadarFragment extends Fragment implements
 
         internalApiClient = new InternalApiClient(this.getActivity(), new ApiClientOptions()
                 .protocol("http")
-                .host(sharedPreferences.getString(Global.CURRENT_INTERNAL_SERVER_IP, "185.5.199.33"))
-                .port(sharedPreferences.getInt(Global.CURRENT_INTERNAL_SERVER_PORT, 5052))
+                .host(sharedPreferences.getString(Config.KEY_INTERNAL_SERVER_IP, "185.5.199.33"))
+                .port(sharedPreferences.getInt(Config.KEY_INTERNAL_SERVER_PORT, 5052))
                 .apiPath("/api/v1")
         );
 
-        Log.d("DBG", "internalApiClient: " + sharedPreferences.getString(Global.CURRENT_INTERNAL_SERVER_IP, "185.5.199.33"));
+        Log.d("DBG", "internalApiClient: " + sharedPreferences.getString(Config.KEY_INTERNAL_SERVER_IP, "185.5.199.33"));
 
         openRoutesServiceApiClient = new OpenRoutesServiceApiClient(this.getActivity(), new ApiClientOptions()
                 .protocol("https")

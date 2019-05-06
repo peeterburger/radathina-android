@@ -22,6 +22,7 @@ import com.fallmerayer.radathina.R;
 import com.fallmerayer.radathina.api.clients.InternalApiClient;
 import com.fallmerayer.radathina.api.core.ApiClientOptions;
 import com.fallmerayer.radathina.api.core.VolleyCallback;
+import com.fallmerayer.radathina.global.Config;
 import com.fallmerayer.radathina.global.Global;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -162,7 +163,7 @@ public class NotificationFragment extends Fragment {
 
         sharedPreferences = getActivity().getSharedPreferences("Settings", Activity.MODE_PRIVATE);
 
-        RADAR_RADIUS_METERS = sharedPreferences.getFloat(Global.CURRENT_RADAR_RADIUS_METER,
+        RADAR_RADIUS_METERS = sharedPreferences.getFloat(Config.KEY_RADAR_RADIUS_METER,
                 1000);
 
         locationRequest = LocationRequest.create();
@@ -186,12 +187,12 @@ public class NotificationFragment extends Fragment {
 
         internalApiClient = new InternalApiClient(this.getActivity(), new ApiClientOptions()
                 .protocol("http")
-                .host(sharedPreferences.getString(Global.CURRENT_INTERNAL_SERVER_IP, "185.5.199.33"))
-                .port(sharedPreferences.getInt(Global.CURRENT_INTERNAL_SERVER_PORT, 5052))
+                .host(sharedPreferences.getString(Config.KEY_INTERNAL_SERVER_IP, "185.5.199.33"))
+                .port(sharedPreferences.getInt(Config.KEY_INTERNAL_SERVER_PORT, 5052))
                 .apiPath("/api/v1")
         );
 
-        Log.d("DBG", "internalApiClient: " + sharedPreferences.getString(Global.CURRENT_INTERNAL_SERVER_IP, "185.5.199.33"));
+        Log.d("DBG", "internalApiClient: " + sharedPreferences.getString(Config.KEY_INTERNAL_SERVER_IP, "185.5.199.33"));
 
     }
 

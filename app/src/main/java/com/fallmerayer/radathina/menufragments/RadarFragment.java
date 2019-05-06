@@ -80,16 +80,12 @@ public class RadarFragment extends Fragment implements
 
     public float    RADAR_RADIUS_METERS = 1000;
 
-    private LatLng lastReceivedLocation;
-
     private TextView attractionDescription;
     private TextView txtViewAttractionDistance;
 
     private Button btnRoute;
     private ScrollView attractionFeed;
     private TextView txtViewAttractionTitle;
-
-    private boolean isRouteSet = false;
 
     private SharedPreferences sharedPreferences;
 
@@ -318,12 +314,22 @@ public class RadarFragment extends Fragment implements
             @Override
             public void onClick(View arg0) {
                 try {
-                    isRouteSet = true;
                     loadRoute(new LatLng(locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER).getLatitude(),
                                     locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER).getLongitude()),
                             attractionLatLng);
+
                     attractionFeed.setVisibility(View.INVISIBLE);
-                    updateCamera(lastReceivedLocation);
+
+                    Global.fusedLocationClient.getLastLocation()
+                            .addOnSuccessListener(getActivity(), new OnSuccessListener<Location>() {
+
+                        @Override
+                        public void onSuccess(Location location) {
+                            updateCamera(new LatLng(location.getLatitude(),
+                                    location.getLongitude()));
+                        }
+
+                    });
                 } catch (SecurityException se) {
                     Log.d("DBG", "GPS permission denied");
                 }
@@ -385,19 +391,35 @@ public class RadarFragment extends Fragment implements
     }
 
     @Override
-    public boolean onMarkerClick(Marker marker) {
+    public boolean onMarkerClick(final Marker marker) {
         Log.d("ONCALLBACK", "onMarkerClick");
 
         attractionDescription.setText("Lade Beschreibung...");
 
-        internalApiClient.calculateBeeline(marker.getPosition(), lastReceivedLocation, new VolleyCallback() {
-            @Override
-            public void onSuccess(String result) {
-                double distance = Double.valueOf(result);
-                int iDistance = (int) distance;
-                txtViewAttractionDistance.setText("In " + iDistance + " Metern Entfernung");
-            }
-        });
+        try {
+            Global.fusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(getActivity(), new OnSuccessListener<Location>() {
+
+                        @Override
+                        public void onSuccess(Location location) {
+
+                            LatLng latLng = new LatLng(location.getLatitude(),
+                                    location.getLongitude());
+
+                            internalApiClient.calculateBeeline(marker.getPosition(), latLng,
+                                    new VolleyCallback() {
+                                @Override
+                                public void onSuccess(String result) {
+                                    double distance = Double.valueOf(result);
+                                    int iDistance = (int) distance;
+                                    txtViewAttractionDistance.setText("In " + iDistance + " Metern Entfernung");
+                                }
+                            });
+                        }
+                    });
+        } catch (SecurityException se) {
+            Log.d("DBG", "GPS permission denied");
+        }
 
         String url = marker.getTitle().replaceAll(" ", "%20");
 

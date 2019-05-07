@@ -16,8 +16,8 @@ import android.widget.ScrollView;
 import com.fallmerayer.radathina.global.Config;
 import com.fallmerayer.radathina.global.Global;
 import com.fallmerayer.radathina.menufragments.HomeFragment;
-import com.fallmerayer.radathina.menufragments.NotificationFragment;
 import com.fallmerayer.radathina.menufragments.RadarFragment;
+import com.fallmerayer.radathina.menufragments.MapFragment;
 import com.fallmerayer.radathina.menufragments.SettingsFragment;
 import com.fallmerayer.radathina.menufragments.WeatherFragment;
 import com.google.android.gms.location.LocationServices;
@@ -104,32 +104,29 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
-        String title = "";
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
 
         switch (menuItem.getItemId()) {
             case R.id.navigation_weather:
-                title = "Weather";
                 fragmentTransaction.replace(R.id.fram, new WeatherFragment());
                 break;
+
             case R.id.navigation_radar:
-                title = "Radar";
                 fragmentTransaction.replace(R.id.fram, new RadarFragment());
                 break;
-            case R.id.navigation_notifications:
-                title = "Notifications";
-                fragmentTransaction.replace(R.id.fram, new NotificationFragment());
+
+            case R.id.navigation_map:
+                fragmentTransaction.replace(R.id.fram, new MapFragment());
                 break;
+
             case R.id.navigation_home:
-                title = "Home";
                 fragmentTransaction.replace(R.id.fram, new HomeFragment());
                 break;
+
             case R.id.navigation_settings:
-                title = "Settings";
                 fragmentTransaction.replace(R.id.fram, new SettingsFragment());
         }
 
-        setTitle(title);
         fragmentTransaction.commit();
 
         return true;

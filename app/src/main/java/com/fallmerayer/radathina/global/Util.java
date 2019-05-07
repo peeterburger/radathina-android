@@ -6,7 +6,7 @@ import com.google.android.gms.maps.model.LatLng;
 
 public class Util {
 
-    public LatLng locationToLatLng (Location location) {
+    public static LatLng locationToLatLng (Location location) {
         if (location == null)
             throw new IllegalArgumentException("Location must not be null");
 
